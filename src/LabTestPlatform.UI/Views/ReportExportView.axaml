@@ -67,36 +67,43 @@
                                    FontWeight="Bold" 
                                    FontSize="16"/>
                         
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="120,*" RowSpacing="10">
+                        <!-- 修复：移除 RowSpacing，使用 Margin 代替 -->
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="120,*">
                             
                             <TextBlock Grid.Row="0" Grid.Column="0" 
                                        Text="选择系统:" 
-                                       VerticalAlignment="Center"/>
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,0,10"/>
                             <ComboBox Grid.Row="0" Grid.Column="1"
                                       ItemsSource="{Binding Systems}"
                                       SelectedItem="{Binding SelectedSystem}"
                                       DisplayMemberPath="SystemName"
-                                      PlaceholderText="全部系统"/>
+                                      PlaceholderText="全部系统"
+                                      Margin="0,0,0,10"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" 
                                        Text="选择平台:" 
-                                       VerticalAlignment="Center"/>
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,0,10"/>
                             <ComboBox Grid.Row="1" Grid.Column="1"
                                       ItemsSource="{Binding Platforms}"
                                       SelectedItem="{Binding SelectedPlatform}"
                                       DisplayMemberPath="PlatformName"
                                       PlaceholderText="全部平台"
-                                      IsEnabled="{Binding HasSelectedSystem}"/>
+                                      IsEnabled="{Binding HasSelectedSystem}"
+                                      Margin="0,0,0,10"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" 
                                        Text="选择模组:" 
-                                       VerticalAlignment="Center"/>
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,0,10"/>
                             <ComboBox Grid.Row="2" Grid.Column="1"
                                       ItemsSource="{Binding Modules}"
                                       SelectedItem="{Binding SelectedModule}"
                                       DisplayMemberPath="ModuleName"
                                       PlaceholderText="全部模组"
-                                      IsEnabled="{Binding HasSelectedPlatform}"/>
+                                      IsEnabled="{Binding HasSelectedPlatform}"
+                                      Margin="0,0,0,10"/>
 
                             <TextBlock Grid.Row="3" Grid.Column="0" 
                                        Text="日期范围:" 
