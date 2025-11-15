@@ -1,0 +1,311 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:LabTestPlatform.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="LabTestPlatform.UI.Views.ReportExportView">
+    
+    <Design.DataContext>
+        <vm:ReportExportViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*" Margin="10">
+        
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" 
+                Background="#16A085" 
+                Padding="15,10" 
+                CornerRadius="5"
+                Margin="0,0,0,10">
+            <TextBlock Text="报表导出" 
+                       FontSize="20" 
+                       FontWeight="Bold"
+                       Foreground="White"/>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="15">
+                
+                <!-- 报表类型选择 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="报表类型" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <StackPanel Spacing="10">
+                            <RadioButton GroupName="ReportType"
+                                         Content="威布尔分析报告"
+                                         IsChecked="{Binding IsWeibullReport}"/>
+                            <RadioButton GroupName="ReportType"
+                                         Content="系统可靠性报告"
+                                         IsChecked="{Binding IsSystemReport}"/>
+                            <RadioButton GroupName="ReportType"
+                                         Content="测试数据汇总报告"
+                                         IsChecked="{Binding IsDataSummaryReport}"/>
+                            <RadioButton GroupName="ReportType"
+                                         Content="自定义报告"
+                                         IsChecked="{Binding IsCustomReport}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 数据范围选择 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="数据范围" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="120,*" RowSpacing="10">
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" 
+                                       Text="选择系统:" 
+                                       VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1"
+                                      ItemsSource="{Binding Systems}"
+                                      SelectedItem="{Binding SelectedSystem}"
+                                      DisplayMemberPath="SystemName"
+                                      PlaceholderText="全部系统"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" 
+                                       Text="选择平台:" 
+                                       VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1"
+                                      ItemsSource="{Binding Platforms}"
+                                      SelectedItem="{Binding SelectedPlatform}"
+                                      DisplayMemberPath="PlatformName"
+                                      PlaceholderText="全部平台"
+                                      IsEnabled="{Binding HasSelectedSystem}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" 
+                                       Text="选择模组:" 
+                                       VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                      ItemsSource="{Binding Modules}"
+                                      SelectedItem="{Binding SelectedModule}"
+                                      DisplayMemberPath="ModuleName"
+                                      PlaceholderText="全部模组"
+                                      IsEnabled="{Binding HasSelectedPlatform}"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" 
+                                       Text="日期范围:" 
+                                       VerticalAlignment="Center"/>
+                            <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto,*">
+                                <DatePicker Grid.Column="0"
+                                            SelectedDate="{Binding StartDate}"
+                                            Watermark="开始日期"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text=" 至 " 
+                                           VerticalAlignment="Center"
+                                           Margin="5,0"/>
+                                <DatePicker Grid.Column="2"
+                                            SelectedDate="{Binding EndDate}"
+                                            Watermark="结束日期"/>
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 报表选项 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="报表选项" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <StackPanel Spacing="10">
+                            <CheckBox Content="包含详细数据表" 
+                                      IsChecked="{Binding IncludeDetailData}"/>
+                            <CheckBox Content="包含威布尔图表" 
+                                      IsChecked="{Binding IncludeCharts}"/>
+                            <CheckBox Content="包含统计分析" 
+                                      IsChecked="{Binding IncludeStatistics}"/>
+                            <CheckBox Content="包含置信区间" 
+                                      IsChecked="{Binding IncludeConfidenceInterval}"/>
+                            <CheckBox Content="添加封面页" 
+                                      IsChecked="{Binding AddCoverPage}"/>
+                            <CheckBox Content="添加目录" 
+                                      IsChecked="{Binding AddTableOfContents}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 输出格式 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="输出格式" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <StackPanel Spacing="10">
+                            <RadioButton GroupName="Format"
+                                         Content="Excel 格式 (.xlsx)"
+                                         IsChecked="{Binding IsExcelFormat}"/>
+                            <RadioButton GroupName="Format"
+                                         Content="PDF 格式 (.pdf)"
+                                         IsChecked="{Binding IsPdfFormat}"/>
+                            <RadioButton GroupName="Format"
+                                         Content="Word 格式 (.docx)"
+                                         IsChecked="{Binding IsWordFormat}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 保存路径 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="保存路径" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0" 
+                                     Text="{Binding SavePath}" 
+                                     Watermark="选择保存位置"
+                                     IsReadOnly="True"
+                                     Height="35"
+                                     VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" 
+                                    Content="📁 浏览" 
+                                    Command="{Binding BrowsePathCommand}"
+                                    Margin="10,0,0,0"
+                                    Padding="15,8"
+                                    Background="#3498DB"
+                                    Foreground="White"
+                                    CornerRadius="3"/>
+                        </Grid>
+
+                        <TextBox Text="{Binding FileName}"
+                                 Watermark="报告文件名"
+                                 Height="35"
+                                 VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 操作按钮 -->
+                <Border Background="#ECF0F1" 
+                        Padding="20" 
+                        CornerRadius="5">
+                    <StackPanel Orientation="Horizontal" 
+                                Spacing="10" 
+                                HorizontalAlignment="Center">
+                        
+                        <Button Content="👁️ 预览报表" 
+                                Command="{Binding PreviewCommand}"
+                                Padding="20,10"
+                                Background="#3498DB"
+                                Foreground="White"
+                                CornerRadius="3"
+                                IsEnabled="{Binding CanPreview}"/>
+                        
+                        <Button Content="📤 导出报表" 
+                                Command="{Binding ExportCommand}"
+                                Padding="20,10"
+                                Background="#27AE60"
+                                Foreground="White"
+                                CornerRadius="3"
+                                IsEnabled="{Binding CanExport}"/>
+                        
+                        <Button Content="🔄 重置" 
+                                Command="{Binding ResetCommand}"
+                                Padding="20,10"
+                                Background="#95A5A6"
+                                Foreground="White"
+                                CornerRadius="3"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导出进度 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20"
+                        IsVisible="{Binding IsExporting}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="导出进度" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <ProgressBar Value="{Binding ExportProgress}" 
+                                     Height="25"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     ShowProgressText="True"/>
+                        
+                        <TextBlock Text="{Binding ProgressMessage}" 
+                                   TextAlignment="Center"
+                                   Foreground="#7F8C8D"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导出历史 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="最近导出" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <ListBox ItemsSource="{Binding ExportHistory}"
+                                 Height="150"
+                                 Background="#FAFAFA">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0" 
+                                                   Text="📄" 
+                                                   Margin="0,0,10,0"
+                                                   FontSize="16"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding FileName}" 
+                                                       FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding ExportTime, StringFormat='导出时间: {0:yyyy-MM-dd HH:mm:ss}'}" 
+                                                       FontSize="11"
+                                                       Foreground="#7F8C8D"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2"
+                                                Content="打开"
+                                                Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}"
+                                                CommandParameter="{Binding FilePath}"
+                                                Padding="8,4"
+                                                Background="#3498DB"
+                                                Foreground="White"
+                                                CornerRadius="2"
+                                                FontSize="11"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,34 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:LabTestPlatform.UI"
+             xmlns:vm="using:LabTestPlatform.UI.ViewModels"
+             xmlns:views="using:LabTestPlatform.UI.Views"
+             x:Class="LabTestPlatform.UI.App">
+    
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <!-- 添加 DataTemplate 资源 -->
+    <Application.DataTemplates>
+        <!-- 系统管理视图模板 -->
+        <DataTemplate DataType="{x:Type vm:SystemManagementViewModel}">
+            <views:SystemManagementView />
+        </DataTemplate>
+        
+        <!-- 数据导入视图模板 -->
+        <DataTemplate DataType="{x:Type vm:DataImportViewModel}">
+            <views:DataImportView />
+        </DataTemplate>
+        
+        <!-- 威布尔分析视图模板 -->
+        <DataTemplate DataType="{x:Type vm:WeibullAnalysisViewModel}">
+            <views:WeibullAnalysisView />
+        </DataTemplate>
+        
+        <!-- 报表导出视图模板 -->
+        <DataTemplate DataType="{x:Type vm:ReportExportViewModel}">
+            <views:ReportExportView />
+        </DataTemplate>
+    </Application.DataTemplates>
+</Application>

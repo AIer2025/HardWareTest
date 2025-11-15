@@ -1,0 +1,215 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             
+                 xmlns:vm="using:LabTestPlatform.UI.ViewModels" 
+                 x:DataType="vm:DataImportViewModel"
+             
+                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                 x:Class="LabTestPlatform.UI.Views.DataImportView">    
+    
+    
+    <Design.DataContext>
+        <vm:DataImportViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*" Margin="10">
+        
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" 
+                Background="#8E44AD" 
+                Padding="15,10" 
+                CornerRadius="5"
+                Margin="0,0,0,10">
+            <TextBlock Text="数据导入" 
+                       FontSize="20" 
+                       FontWeight="Bold"
+                       Foreground="White"/>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="15">
+                
+                <!-- 文件选择区域 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="选择导入文件" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0" 
+                                     Text="{Binding SelectedFilePath}" 
+                                     Watermark="请选择 Excel 文件 (.xlsx, .xls)"
+                                     IsReadOnly="True"
+                                     Height="35"
+                                     VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" 
+                                    Content="浏览文件" 
+                                    Command="{Binding BrowseFileCommand}"
+                                    Margin="10,0,0,0"
+                                    Padding="15,8"
+                                    Background="#3498DB"
+                                    Foreground="White"
+                                    CornerRadius="3"/>
+                        </Grid>
+
+                        <TextBlock Text="{Binding FileInfo}" 
+                                   Foreground="#7F8C8D"
+                                   FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导入选项 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="导入选项" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"
+                                   Margin="0,0,0,10"/>
+
+                        <CheckBox Content="跳过重复数据" 
+                                  IsChecked="{Binding SkipDuplicates}"/>
+                        <CheckBox Content="验证数据完整性" 
+                                  IsChecked="{Binding ValidateData}"/>
+                        <CheckBox Content="导入后刷新界面" 
+                                  IsChecked="{Binding RefreshAfterImport}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 数据预览 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20"
+                        IsVisible="{Binding HasPreviewData}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="数据预览" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <TextBlock>
+                            <Run Text="检测到 "/>
+                            <Run Text="{Binding PreviewRowCount}" FontWeight="Bold"/>
+                            <Run Text=" 行数据"/>
+                        </TextBlock>
+
+                        <ListBox ItemsSource="{Binding PreviewData}"
+                                 Height="250"
+                                 Background="#FAFAFA">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White"
+                                            BorderBrush="#E0E0E0"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="10,5">
+                                        <TextBlock Text="{Binding}" FontFamily="Consolas"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- 操作按钮 -->
+                <Border Background="#ECF0F1" 
+                        Padding="20" 
+                        CornerRadius="5">
+                    <StackPanel Orientation="Horizontal" 
+                                Spacing="10" 
+                                HorizontalAlignment="Center">
+                        
+                        <Button Content="预览数据" 
+                                Command="{Binding PreviewCommand}"
+                                Padding="20,10"
+                                Background="#3498DB"
+                                Foreground="White"
+                                CornerRadius="3"
+                                IsEnabled="{Binding CanPreview}"/>
+                        
+                        <Button Content="开始导入" 
+                                Command="{Binding ImportCommand}"
+                                Padding="20,10"
+                                Background="#27AE60"
+                                Foreground="White"
+                                CornerRadius="3"
+                                IsEnabled="{Binding CanImport}"/>
+                        
+                        <Button Content="重置" 
+                                Command="{Binding ResetCommand}"
+                                Padding="20,10"
+                                Background="#95A5A6"
+                                Foreground="White"
+                                CornerRadius="3"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导入进度 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20"
+                        IsVisible="{Binding IsImporting}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="导入进度" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <ProgressBar Value="{Binding ImportProgress}" 
+                                     Height="25"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     ShowProgressText="True"/>
+                        
+                        <TextBlock Text="{Binding ProgressMessage}" 
+                                   TextAlignment="Center"
+                                   Foreground="#7F8C8D"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导入结果 -->
+                <Border Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20"
+                        IsVisible="{Binding HasImportResult}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="导入结果" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"/>
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock>
+                                <Run Text="成功导入: " Foreground="#27AE60"/>
+                                <Run Text="{Binding SuccessCount}" FontWeight="Bold"/>
+                                <Run Text=" 条"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="失败: " Foreground="#E74C3C"/>
+                                <Run Text="{Binding FailureCount}" FontWeight="Bold"/>
+                                <Run Text=" 条"/>
+                            </TextBlock>
+                            <TextBlock>
+                                <Run Text="用时: "/>
+                                <Run Text="{Binding ElapsedTime}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,308 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:LabTestPlatform.UI.ViewModels"
+             xmlns:scottplot="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="LabTestPlatform.UI.Views.WeibullAnalysisView">
+    
+    <Design.DataContext>
+        <vm:WeibullAnalysisViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*" Margin="10">
+        
+        <!-- 标题栏 -->
+        <Border Grid.Row="0" 
+                Background="#E67E22" 
+                Padding="15,10" 
+                CornerRadius="5"
+                Margin="0,0,0,10">
+            <TextBlock Text="威布尔可靠性分析" 
+                       FontSize="20" 
+                       FontWeight="Bold"
+                       Foreground="White"/>
+        </Border>
+
+        <!-- 主内容区域 -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*">
+            
+            <!-- 参数选择区域 -->
+            <Border Grid.Row="0" 
+                    Background="White" 
+                    BorderBrush="#BDC3C7" 
+                    BorderThickness="1" 
+                    CornerRadius="5"
+                    Padding="20"
+                    Margin="0,0,0,10">
+                <Grid ColumnDefinitions="*,*,Auto">
+                    
+                    <!-- 选择系统 -->
+                    <StackPanel Grid.Column="0" Spacing="8" Margin="0,0,15,0">
+                        <TextBlock Text="选择系统" FontWeight="Bold"/>
+                        <ComboBox ItemsSource="{Binding Systems}"
+                                  SelectedItem="{Binding SelectedSystem}"
+                                  DisplayMemberPath="SystemName"
+                                  PlaceholderText="请选择系统"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- 选择平台 -->
+                    <StackPanel Grid.Column="1" Spacing="8" Margin="0,0,15,0">
+                        <TextBlock Text="选择平台" FontWeight="Bold"/>
+                        <ComboBox ItemsSource="{Binding Platforms}"
+                                  SelectedItem="{Binding SelectedPlatform}"
+                                  DisplayMemberPath="PlatformName"
+                                  PlaceholderText="请选择平台"
+                                  IsEnabled="{Binding HasSelectedSystem}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- 选择模组 -->
+                    <StackPanel Grid.Column="2" Spacing="8" Width="250">
+                        <TextBlock Text="选择模组" FontWeight="Bold"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0"
+                                      ItemsSource="{Binding Modules}"
+                                      SelectedItem="{Binding SelectedModule}"
+                                      DisplayMemberPath="ModuleName"
+                                      PlaceholderText="请选择模组"
+                                      IsEnabled="{Binding HasSelectedPlatform}"/>
+                            <Button Grid.Column="1"
+                                    Content="分析"
+                                    Command="{Binding AnalyzeCommand}"
+                                    Margin="10,0,0,0"
+                                    Padding="15,0"
+                                    Background="#E67E22"
+                                    Foreground="White"
+                                    CornerRadius="3"
+                                    IsEnabled="{Binding CanAnalyze}"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 结果显示区域 -->
+            <Grid Grid.Row="1" ColumnDefinitions="2*,3*">
+                
+                <!-- 左侧：分析结果 -->
+                <Border Grid.Column="0" 
+                        Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20"
+                        Margin="0,0,10,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="15" IsVisible="{Binding HasResult}">
+                            
+                            <TextBlock Text="分析结果" 
+                                       FontWeight="Bold" 
+                                       FontSize="18"
+                                       Margin="0,0,0,10"/>
+
+                            <!-- 基本信息 -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="基本信息" 
+                                           FontWeight="Bold" 
+                                           FontSize="14"
+                                           Foreground="#34495E"/>
+                                <Border Background="#ECF0F1" Padding="10" CornerRadius="3">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock>
+                                            <Run Text="模组: " Foreground="#7F8C8D"/>
+                                            <Run Text="{Binding ResultModuleName}" FontWeight="Bold"/>
+                                        </TextBlock>
+                                        <TextBlock>
+                                            <Run Text="样本数: " Foreground="#7F8C8D"/>
+                                            <Run Text="{Binding SampleCount}" FontWeight="Bold"/>
+                                        </TextBlock>
+                                        <TextBlock>
+                                            <Run Text="分析时间: " Foreground="#7F8C8D"/>
+                                            <Run Text="{Binding AnalysisTime, StringFormat='yyyy-MM-dd HH:mm:ss'}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- 威布尔参数 -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="威布尔参数" 
+                                           FontWeight="Bold" 
+                                           FontSize="14"
+                                           Foreground="#34495E"/>
+                                <Border Background="#E8F8F5" Padding="10" CornerRadius="3">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock>
+                                            <Run Text="形状参数 β: " Foreground="#16A085"/>
+                                            <Run Text="{Binding Beta, StringFormat='{}{0:F4}'}" 
+                                                 FontWeight="Bold" FontSize="16"/>
+                                        </TextBlock>
+                                        <TextBlock>
+                                            <Run Text="尺度参数 η: " Foreground="#16A085"/>
+                                            <Run Text="{Binding Eta, StringFormat='{}{0:F2}'}" 
+                                                 FontWeight="Bold" FontSize="16"/>
+                                            <Run Text=" 小时"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="11" Foreground="#7F8C8D" TextWrapping="Wrap"
+                                                   Text="β &lt; 1: 早期失效; β = 1: 随机失效; β > 1: 磨损失效"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- 可靠性指标 -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="可靠性指标" 
+                                           FontWeight="Bold" 
+                                           FontSize="14"
+                                           Foreground="#34495E"/>
+                                <Border Background="#FEF5E7" Padding="10" CornerRadius="3">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock>
+                                            <Run Text="平均寿命 MTTF: " Foreground="#F39C12"/>
+                                            <Run Text="{Binding MTTF, StringFormat='{}{0:F2}'}" 
+                                                 FontWeight="Bold"/>
+                                            <Run Text=" 小时"/>
+                                        </TextBlock>
+                                        <TextBlock>
+                                            <Run Text="B10 寿命: " Foreground="#E67E22"/>
+                                            <Run Text="{Binding B10Life, StringFormat='{}{0:F2}'}" 
+                                                 FontWeight="Bold"/>
+                                            <Run Text=" 小时"/>
+                                        </TextBlock>
+                                        <TextBlock>
+                                            <Run Text="B50 寿命: " Foreground="#E67E22"/>
+                                            <Run Text="{Binding B50Life, StringFormat='{}{0:F2}'}" 
+                                                 FontWeight="Bold"/>
+                                            <Run Text=" 小时"/>
+                                        </TextBlock>
+                                        <TextBlock>
+                                            <Run Text="B90 寿命: " Foreground="#E67E22"/>
+                                            <Run Text="{Binding B90Life, StringFormat='{}{0:F2}'}" 
+                                                 FontWeight="Bold"/>
+                                            <Run Text=" 小时"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- 拟合质量 -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="拟合质量" 
+                                           FontWeight="Bold" 
+                                           FontSize="14"
+                                           Foreground="#34495E"/>
+                                <Border Background="#FDEDEC" Padding="10" CornerRadius="3">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock>
+                                            <Run Text="拟合优度 R²: " Foreground="#E74C3C"/>
+                                            <Run Text="{Binding RSquared, StringFormat='{}{0:F4}'}" 
+                                                 FontWeight="Bold" FontSize="16"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="11" Foreground="#7F8C8D"
+                                                   Text="R² > 0.95 表示拟合良好"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- 置信区间 -->
+                            <StackPanel Spacing="8" IsVisible="{Binding HasConfidenceInterval}">
+                                <TextBlock Text="置信区间 (95%)" 
+                                           FontWeight="Bold" 
+                                           FontSize="14"
+                                           Foreground="#34495E"/>
+                                <Border Background="#EBF5FB" Padding="10" CornerRadius="3">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock FontSize="12">
+                                            <Run Text="β: ["/>
+                                            <Run Text="{Binding BetaLower, StringFormat='{}{0:F4}'}"/>
+                                            <Run Text=", "/>
+                                            <Run Text="{Binding BetaUpper, StringFormat='{}{0:F4}'}"/>
+                                            <Run Text="]"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="12">
+                                            <Run Text="η: ["/>
+                                            <Run Text="{Binding EtaLower, StringFormat='{}{0:F2}'}"/>
+                                            <Run Text=", "/>
+                                            <Run Text="{Binding EtaUpper, StringFormat='{}{0:F2}'}"/>
+                                            <Run Text="]"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- 操作按钮 -->
+                            <StackPanel Spacing="10" Margin="0,10,0,0">
+                                <Button Content="保存结果" 
+                                        Command="{Binding SaveResultCommand}"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="10"
+                                        Background="#27AE60"
+                                        Foreground="White"
+                                        CornerRadius="3"/>
+                                <Button Content="导出报告" 
+                                        Command="{Binding ExportReportCommand}"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="10"
+                                        Background="#3498DB"
+                                        Foreground="White"
+                                        CornerRadius="3"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- 无结果提示 -->
+                        <StackPanel IsVisible="{Binding !HasResult}"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Spacing="10">
+                            <TextBlock Text="📊" 
+                                       FontSize="48"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#BDC3C7"/>
+                            <TextBlock Text="请选择模组并点击分析按钮" 
+                                       FontSize="14"
+                                       Foreground="#7F8C8D"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 右侧：威布尔图表 -->
+                <Border Grid.Column="1" 
+                        Background="White" 
+                        BorderBrush="#BDC3C7" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        Padding="20">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="威布尔概率图" 
+                                   FontWeight="Bold" 
+                                   FontSize="16"
+                                   Margin="0,0,0,10"/>
+
+                        <!-- ScottPlot 图表 -->
+                        <scottplot:AvaPlot x:Name="WeibullPlot" 
+                                           IsVisible="{Binding HasResult}"/>
+
+                        <!-- 无图表提示 -->
+                        <StackPanel IsVisible="{Binding !HasResult}"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Spacing="10">
+                            <TextBlock Text="📈" 
+                                       FontSize="64"
+                                       HorizontalAlignment="Center"
+                                       Foreground="#BDC3C7"/>
+                            <TextBlock Text="威布尔概率图将在分析后显示" 
+                                       FontSize="14"
+                                       Foreground="#7F8C8D"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

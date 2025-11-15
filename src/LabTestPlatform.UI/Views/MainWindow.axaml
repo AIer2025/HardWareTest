@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LabTestPlatform.UI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="LabTestPlatform.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="深圳实验室测试平台 v1.0"
+        Width="1200" Height="800">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部菜单栏 -->
+        <Border Grid.Row="0" Background="#2C3E50" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="系统管理" 
+                        Command="{Binding ShowSystemManagementCommand}"
+                        Classes="menu-button"/>
+                <Button Content="数据导入" 
+                        Command="{Binding ShowDataImportCommand}"
+                        Classes="menu-button"/>
+                <Button Content="威布尔分析" 
+                        Command="{Binding ShowWeibullAnalysisCommand}"
+                        Classes="menu-button"/>
+                <Button Content="报告导出" 
+                        Command="{Binding ShowReportExportCommand}"
+                        Classes="menu-button"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 主内容区 -->
+        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" Margin="10"/>
+
+        <!-- 状态栏 -->
+        <Border Grid.Row="2" Background="#34495E" Padding="10">
+            <TextBlock Text="就绪" Foreground="White"/>
+        </Border>
+    </Grid>
+
+    <Window.Styles>
+        <Style Selector="Button.menu-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.menu-button:pointerover">
+            <Setter Property="Background" Value="#34495E"/>
+        </Style>
+    </Window.Styles>
+</Window>

@@ -1,0 +1,17 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="LabTestPlatform.App"
+             RequestedThemeVariant="Light">
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+    </Application.Styles>
+
+    <Application.Resources>
+        <!-- 全局样式定义 -->
+        <SolidColorBrush x:Key="PrimaryColor" Color="#2196F3"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4CAF50"/>
+        <SolidColorBrush x:Key="WarningColor" Color="#FF9800"/>
+        <SolidColorBrush x:Key="DangerColor" Color="#F44336"/>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="7.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LabTestPlatform.Data\LabTestPlatform.Data.csproj" />
+    <ProjectReference Include="..\LabTestPlatform.Analysis\LabTestPlatform.Analysis.csproj" />
+  </ItemGroup>
+
+</Project>

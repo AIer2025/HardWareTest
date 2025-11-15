@@ -1,0 +1,115 @@
+# .gitignore for C# / .NET 8.0 / Avalonia / JetBrains Rider
+#
+# 此文件基于 Microsoft、GitHub 和 JetBrains 的标准模板
+# 它涵盖了 .NET、Rider、Visual Studio 和常见操作系统的忽略规则
+
+### 1. 操作系统生成文件 ###
+# 操作系统和编辑器生成的临时文件、缓存和日志
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# 编辑器（Vim, VSCode等）
+.*.swp
+.vscode/launch.json
+.vscode/tasks.json
+
+### 2. .NET / C# / Avalonia 构建产物 ###
+# 编译和构建过程生成的文件
+
+# 忽略所有 bin 和 obj 文件夹
+# 使用 [Bb]in/ 来匹配 'bin/' 和 'Bin/' (不区分大小写)
+[Oo]bj/
+[Bb]in/
+
+# .NET 8.0+ 生成的文件夹
+[Pp]ublish/
+[Rr]elease/
+[Dd]ebug/
+
+# NuGet 包
+# 不要提交下载的包，它们应该通过 'dotnet restore' 恢复
+packages/
+*.nupkg
+*.snupkg
+*.symbols.nupkg
+
+# 测试结果
+TestResult/
+TestResults/
+*.trx
+*.coverlet.json
+
+# 日志和缓存
+*.log
+*.cache
+*.sqlite
+*.sqlite-journal
+
+# Avalonia 编译缓存 (通常在 obj 中, 但以防万一)
+.avalonia/build-cache/
+
+# .NET 临时文件和用户设置
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+### 3. JetBrains Rider 和 ReSharper ###
+# Rider 和 ReSharper 生成的用户特定文件
+
+# ReSharper 缓存
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Rider
+# .idea 文件夹本身应该被跟踪 (用于共享设置, 如运行配置)
+# 但以下文件是用户特定的，应该被忽略
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+.idea/vcs.xml
+.idea/httpRequests/
+
+### 4. Visual Studio (可选, 推荐) ###
+# 如果团队中有人使用 Visual Studio
+
+.vs/
+*.vcxproj.user
+*.csproj.user
+*.dbmdl
+
+### 5. 密码和敏感配置 ###
+# 永远不要将密码、API 密钥或私钥提交到 Git
+
+# .NET 用户机密 (User Secrets)
+*.secrets.json
+
+# 常见的本地配置文件
+# 团队应该共享 appsettings.json, 但不同步本地的开发设置
+appsettings.Development.json
+*.env
+*.local.xml
+
+# 私钥
+*.pfx
+*.key
+*.pem
