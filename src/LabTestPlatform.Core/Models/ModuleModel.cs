@@ -1,19 +1,9 @@
-using System;
-
-namespace LabTestPlatform.Core.Models;
-
-public class ModuleModel
+namespace LabTestPlatform.Core.Models
 {
-    public int ModuleId { get; set; }
-    public int PlatformId { get; set; }
-    public string ModuleCode { get; set; } = string.Empty;
-    public string ModuleName { get; set; } = string.Empty;
-    public string? ModuleType { get; set; }
-    public string? Manufacturer { get; set; }
-    
-    // 额外的显示属性
-    public string PlatformName { get; set; } = string.Empty;
-    public string SystemName { get; set; } = string.Empty;
-    public int TestCount { get; set; }
-    public DateTime CreateDate { get; set; } = DateTime.Now;
+    public class ModuleModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string PlatformId { get; set; } = string.Empty;
+    }
 }

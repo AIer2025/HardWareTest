@@ -1,14 +1,14 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using LabTestPlatform.Data.Entities;
+using System.Collections.Generic;
 
-namespace LabTestPlatform.Data.Repositories;
-
-public interface IPlatformRepository
+namespace LabTestPlatform.Data.Repositories
 {
-    Task<IEnumerable<PlatformEntity>> GetBySystemIdAsync(int systemId);
-    Task<PlatformEntity?> GetByIdAsync(int platformId);
-    Task<int> InsertAsync(PlatformEntity platform);
-    Task<bool> UpdateAsync(PlatformEntity platform);
-    Task<bool> DeleteAsync(int platformId);
+    public interface IPlatformRepository
+    {
+        IEnumerable<PlatformEntity> GetBySystemId(string systemId);
+        PlatformEntity GetById(string id);
+        void Add(PlatformEntity entity);
+        void Update(PlatformEntity entity);
+        void Delete(string id);
+    }
 }

@@ -1,62 +1,47 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Dapper;
 using LabTestPlatform.Data.Context;
 using LabTestPlatform.Data.Entities;
+using System.Collections.Generic;
 
-namespace LabTestPlatform.Data.Repositories;
-
-public class PlatformRepository : IPlatformRepository
+namespace LabTestPlatform.Data.Repositories
 {
-    private readonly IDbConnectionFactory _connectionFactory;
-
-    public PlatformRepository(IDbConnectionFactory connectionFactory)
+    public class PlatformRepository : IPlatformRepository
     {
-        _connectionFactory = connectionFactory;
-    }
+        private readonly IDbConnectionFactory _connectionFactory;
 
-    public async Task<IEnumerable<PlatformEntity>> GetBySystemIdAsync(int systemId)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = "SELECT * FROM tb_platform WHERE system_id = @SystemId AND is_active = 1";
-        return await conn.QueryAsync<PlatformEntity>(sql, new { SystemId = systemId });
-    }
+        public PlatformRepository(IDbConnectionFactory connectionFactory)
+        {
+            _connectionFactory = connectionFactory;
+        }
 
-    public async Task<PlatformEntity?> GetByIdAsync(int platformId)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = "SELECT * FROM tb_platform WHERE platform_id = @PlatformId";
-        return await conn.QueryFirstOrDefaultAsync<PlatformEntity>(sql, new { PlatformId = platformId });
-    }
+        public IEnumerable<PlatformEntity> GetBySystemId(string systemId)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return connection.Query<PlatformEntity>("SELECT * FROM Platforms WHERE SystemId = @SystemId", new { SystemId = systemId });
+        }
 
-    public async Task<int> InsertAsync(PlatformEntity platform)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = @"
-            INSERT INTO tb_platform (system_id, platform_code, platform_name, platform_type, is_active)
-            VALUES (@SystemId, @PlatformCode, @PlatformName, @PlatformType, @IsActive);
-            SELECT LAST_INSERT_ID();";
-        return await conn.ExecuteScalarAsync<int>(sql, platform);
-    }
+        public PlatformEntity GetById(string id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return connection.QuerySingleOrDefault<PlatformEntity>("SELECT * FROM Platforms WHERE Id = @Id", new { Id = id });
+        }
 
-    public async Task<bool> UpdateAsync(PlatformEntity platform)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = @"
-            UPDATE tb_platform SET
-                platform_name = @PlatformName,
-                platform_type = @PlatformType,
-                is_active = @IsActive
-            WHERE platform_id = @PlatformId";
-        var affected = await conn.ExecuteAsync(sql, platform);
-        return affected > 0;
-    }
+        public void Add(PlatformEntity entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Execute("INSERT INTO Platforms (Id, Name, SystemId) VALUES (@Id, @Name, @SystemId)", entity);
+        }
 
-    public async Task<bool> DeleteAsync(int platformId)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = "UPDATE tb_platform SET is_active = 0 WHERE platform_id = @PlatformId";
-        var affected = await conn.ExecuteAsync(sql, new { PlatformId = platformId });
-        return affected > 0;
+        public void Update(PlatformEntity entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Execute("UPDATE Platforms SET Name = @Name WHERE Id = @Id", entity);
+        }
+
+        public void Delete(string id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Execute("DELETE FROM Platforms WHERE Id = @Id", new { Id = id });
+        }
     }
 }

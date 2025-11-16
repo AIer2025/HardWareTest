@@ -1,271 +1,158 @@
-using System;
+using LabTestPlatform.Core.Services;
+using LabTestPlatform.UI.Models;
+using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
-using System.Threading.Tasks;
-using ReactiveUI;
-using Microsoft.Extensions.DependencyInjection;
-using LabTestPlatform.Core.Services;
-using LabTestPlatform.Core.Models;
-using LabTestPlatform.UI.Models;
+using System.Reactive.Linq; // 修正：添加了 using
+using LabTestPlatform.Core.Models; // 修正：添加了 using (修复 CS1061)
 
-namespace LabTestPlatform.UI.ViewModels;
-
-public class SystemManagementViewModel : ViewModelBase
+namespace LabTestPlatform.UI.ViewModels
 {
-    private readonly ISystemService _systemService;
-    private ObservableCollection<SystemNode> _systems;
-    private ObservableCollection<ModuleModel> _modules;
-    private SystemNode? _selectedNode;
-    private ModuleModel? _selectedModule;
-    private string _searchText = string.Empty;
-    private string _selectedNodeInfo = string.Empty;
-    private int _systemCount;
-    private int _platformCount;
-    private int _moduleCount;
-
-    public SystemManagementViewModel(IServiceProvider serviceProvider)
+    public class SystemManagementViewModel : ViewModelBase
     {
-        _systemService = serviceProvider.GetRequiredService<ISystemService>();
-        _systems = new ObservableCollection<SystemNode>();
-        _modules = new ObservableCollection<ModuleModel>();
+        private readonly ISystemService _systemService;
+        private ObservableCollection<SystemNode> _systemNodes;
+        
+        // 修正：声明为可空类型以修复警告
+        private SystemNode? _selectedNode;
 
-        LoadDataCommand = ReactiveCommand.CreateFromTask(LoadDataAsync);
-        AddSystemCommand = ReactiveCommand.CreateFromTask(AddSystemAsync);
-        AddPlatformCommand = ReactiveCommand.CreateFromTask(AddPlatformAsync, this.WhenAnyValue(x => x.CanAddPlatform));
-        AddModuleCommand = ReactiveCommand.CreateFromTask(AddModuleAsync, this.WhenAnyValue(x => x.CanAddModule));
-        EditCommand = ReactiveCommand.CreateFromTask(EditAsync, this.WhenAnyValue(x => x.CanEdit));
-        DeleteCommand = ReactiveCommand.CreateFromTask(DeleteAsync, this.WhenAnyValue(x => x.CanDelete));
-        RefreshCommand = ReactiveCommand.CreateFromTask(LoadDataAsync);
-
-        // 监听选中节点的变化
-        this.WhenAnyValue(x => x.SelectedNode)
-            .Subscribe(async node => await OnSelectedNodeChanged(node));
-
-        LoadDataCommand.Execute().Subscribe();
-    }
-
-    public ObservableCollection<SystemNode> Systems
-    {
-        get => _systems;
-        set => this.RaiseAndSetIfChanged(ref _systems, value);
-    }
-
-    public ObservableCollection<ModuleModel> Modules
-    {
-        get => _modules;
-        set => this.RaiseAndSetIfChanged(ref _modules, value);
-    }
-
-    public SystemNode? SelectedNode
-    {
-        get => _selectedNode;
-        set => this.RaiseAndSetIfChanged(ref _selectedNode, value);
-    }
-
-    public ModuleModel? SelectedModule
-    {
-        get => _selectedModule;
-        set => this.RaiseAndSetIfChanged(ref _selectedModule, value);
-    }
-
-    public string SearchText
-    {
-        get => _searchText;
-        set => this.RaiseAndSetIfChanged(ref _searchText, value);
-    }
-
-    public string SelectedNodeInfo
-    {
-        get => _selectedNodeInfo;
-        set => this.RaiseAndSetIfChanged(ref _selectedNodeInfo, value);
-    }
-
-    public int SystemCount
-    {
-        get => _systemCount;
-        set => this.RaiseAndSetIfChanged(ref _systemCount, value);
-    }
-
-    public int PlatformCount
-    {
-        get => _platformCount;
-        set => this.RaiseAndSetIfChanged(ref _platformCount, value);
-    }
-
-    public int ModuleCount
-    {
-        get => _moduleCount;
-        set => this.RaiseAndSetIfChanged(ref _moduleCount, value);
-    }
-
-    public bool CanAddPlatform => SelectedNode?.NodeType == "System";
-    public bool CanAddModule => SelectedNode?.NodeType == "Platform";
-    public bool CanEdit => SelectedNode != null;
-    public bool CanDelete => SelectedNode != null;
-
-    public ReactiveCommand<Unit, Unit> LoadDataCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddSystemCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddPlatformCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddModuleCommand { get; }
-    public ReactiveCommand<Unit, Unit> EditCommand { get; }
-    public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
-    public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
-
-    private async Task LoadDataAsync()
-    {
-        try
+        public ObservableCollection<SystemNode> SystemNodes
         {
-            var systems = await _systemService.GetAllSystemsAsync();
-            Systems.Clear();
-
-            int totalPlatforms = 0;
-            int totalModules = 0;
-
-            foreach (var system in systems)
-            {
-                var systemNode = new SystemNode
-                {
-                    Id = system.SystemId.ToString(),
-                    Name = $"{system.SystemCode} - {system.SystemName}",
-                    NodeType = "System",
-                    Data = system
-                };
-
-                var platforms = await _systemService.GetPlatformsBySystemIdAsync(system.SystemId);
-                totalPlatforms += platforms.Count();
-
-                foreach (var platform in platforms)
-                {
-                    var platformNode = new SystemNode
-                    {
-                        Id = platform.PlatformId.ToString(),
-                        Name = $"{platform.PlatformCode} - {platform.PlatformName}",
-                        NodeType = "Platform",
-                        Data = platform,
-                        Parent = systemNode
-                    };
-
-                    var modules = await _systemService.GetModulesByPlatformIdAsync(platform.PlatformId);
-                    totalModules += modules.Count();
-
-                    foreach (var module in modules)
-                    {
-                        var moduleNode = new SystemNode
-                        {
-                            Id = module.ModuleId.ToString(),
-                            Name = $"{module.ModuleCode} - {module.ModuleName}",
-                            NodeType = "Module",
-                            Data = module,
-                            Parent = platformNode
-                        };
-                        platformNode.Children.Add(moduleNode);
-                    }
-
-                    systemNode.Children.Add(platformNode);
-                }
-
-                Systems.Add(systemNode);
-            }
-
-            // 更新统计信息
-            SystemCount = systems.Count();
-            PlatformCount = totalPlatforms;
-            ModuleCount = totalModules;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"加载数据失败: {ex.Message}");
-        }
-    }
-
-    private async Task OnSelectedNodeChanged(SystemNode? node)
-    {
-        if (node == null)
-        {
-            SelectedNodeInfo = string.Empty;
-            Modules.Clear();
-            this.RaisePropertyChanged(nameof(CanAddPlatform));
-            this.RaisePropertyChanged(nameof(CanAddModule));
-            this.RaisePropertyChanged(nameof(CanEdit));
-            this.RaisePropertyChanged(nameof(CanDelete));
-            return;
+            get => _systemNodes;
+            set => this.RaiseAndSetIfChanged(ref _systemNodes, value);
         }
 
-        // 更新选中节点信息
-        SelectedNodeInfo = node.NodeType switch
+        // 修正：声明为可空类型以修复警告
+        public SystemNode? SelectedNode
         {
-            "System" => $"系统: {node.Name}",
-            "Platform" => $"平台: {node.Name}",
-            "Module" => $"模组: {node.Name}",
-            _ => string.Empty
-        };
+            get => _selectedNode;
+            set => this.RaiseAndSetIfChanged(ref _selectedNode, value);
+        }
 
-        // 加载模组列表
-        try
+        public ReactiveCommand<Unit, Unit> AddSystemCommand { get; }
+        public ReactiveCommand<Unit, Unit> AddPlatformCommand { get; }
+        public ReactiveCommand<Unit, Unit> AddModuleCommand { get; }
+        public ReactiveCommand<Unit, Unit> DeleteNodeCommand { get; }
+        public ReactiveCommand<Unit, Unit> UpdateNodeCommand { get; }
+
+        public SystemManagementViewModel(ISystemService systemService)
         {
-            Modules.Clear();
+            _systemService = systemService;
+            
+            _systemNodes = new ObservableCollection<SystemNode>();
+            _selectedNode = null; 
+            
+            LoadSystemTree();
 
-            if (node.NodeType == "Platform" && node.Data is PlatformModel platform)
+            // 修正：修正 WhenAnyValue 的用法，避免二义性
+            var canAddPlatform = this.WhenAnyValue(x => x.SelectedNode)
+                                     .Select(node => node?.Type == "System");
+            
+            var canAddModule = this.WhenAnyValue(x => x.SelectedNode)
+                                   .Select(node => node?.Type == "Platform");
+
+            var canDeleteOrUpdate = this.WhenAnyValue(x => x.SelectedNode)
+                                        .Select(node => node != null);
+
+            AddSystemCommand = ReactiveCommand.Create(AddSystem);
+            AddPlatformCommand = ReactiveCommand.Create(AddPlatform, canAddPlatform);
+            AddModuleCommand = ReactiveCommand.Create(AddModule, canAddModule);
+            DeleteNodeCommand = ReactiveCommand.Create(DeleteNode, canDeleteOrUpdate);
+            UpdateNodeCommand = ReactiveCommand.Create(UpdateNode, canDeleteOrUpdate);
+        }
+
+        private void LoadSystemTree()
+        {
+            // 修正：此代码现在可以正确找到 Type 属性和 Service 方法
+            var systems = _systemService.GetAllSystems();
+            var nodes = systems.Select(s => new SystemNode
             {
-                var modules = await _systemService.GetModulesByPlatformIdAsync(platform.PlatformId);
-                foreach (var module in modules)
-                {
-                    Modules.Add(module);
-                }
-            }
-            else if (node.NodeType == "System" && node.Data is SystemModel system)
-            {
-                var platforms = await _systemService.GetPlatformsBySystemIdAsync(system.SystemId);
-                foreach (var plat in platforms)
-                {
-                    var modules = await _systemService.GetModulesByPlatformIdAsync(plat.PlatformId);
-                    foreach (var module in modules)
+                Id = s.Id,
+                Name = s.Name,
+                Type = "System",
+                Children = new ObservableCollection<SystemNode>(
+                    _systemService.GetPlatformsBySystemId(s.Id).Select(p => new SystemNode
                     {
-                        Modules.Add(module);
-                    }
-                }
+                        Id = p.Id,
+                        Name = p.Name,
+                        Type = "Platform",
+                        Children = new ObservableCollection<SystemNode>(
+                            _systemService.GetModulesByPlatformId(p.Id).Select(m => new SystemNode
+                            {
+                                Id = m.Id,
+                                Name = m.Name,
+                                Type = "Module"
+                            })
+                        )
+                    })
+                )
+            });
+            SystemNodes = new ObservableCollection<SystemNode>(nodes);
+        }
+
+        private void AddSystem()
+        {
+            var newSystem = new SystemNode { Id = "new_system_" + SystemNodes.Count, Name = "New System", Type = "System" };
+            SystemNodes.Add(newSystem);
+        }
+
+        private void AddPlatform()
+        {
+            if (SelectedNode?.Type == "System")
+            {
+                var newPlatform = new SystemNode { Id = "new_platform_" + SelectedNode.Children.Count, Name = "New Platform", Type = "Platform" };
+                SelectedNode.Children.Add(newPlatform);
             }
         }
-        catch (Exception ex)
+
+        private void AddModule()
         {
-            Console.WriteLine($"加载模组失败: {ex.Message}");
+            if (SelectedNode?.Type == "Platform")
+            {
+                var newModule = new SystemNode { Id = "new_module_" + SelectedNode.Children.Count, Name = "New Module", Type = "Module" };
+                SelectedNode.Children.Add(newModule);
+            }
         }
 
-        // 更新命令的可用状态
-        this.RaisePropertyChanged(nameof(CanAddPlatform));
-        this.RaisePropertyChanged(nameof(CanAddModule));
-        this.RaisePropertyChanged(nameof(CanEdit));
-        this.RaisePropertyChanged(nameof(CanDelete));
-    }
+        private void DeleteNode()
+        {
+            if (SelectedNode == null) return;
 
-    private async Task AddSystemAsync()
-    {
-        // TODO: 实现添加系统的逻辑
-        await Task.CompletedTask;
-    }
+            var parent = FindParent(SystemNodes, SelectedNode);
+            if (parent != null)
+            {
+                parent.Children.Remove(SelectedNode);
+            }
+            else if (SystemNodes.Contains(SelectedNode))
+            {
+                SystemNodes.Remove(SelectedNode);
+            }
+        }
+        
+        // 修正：返回类型改为可空以修复警告
+        private SystemNode? FindParent(ObservableCollection<SystemNode> nodes, SystemNode nodeToFind)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.Children.Contains(nodeToFind))
+                {
+                    return node;
+                }
+                var parent = FindParent(node.Children, nodeToFind);
+                if (parent != null)
+                {
+                    return parent;
+                }
+            }
+            return null;
+        }
 
-    private async Task AddPlatformAsync()
-    {
-        // TODO: 实现添加平台的逻辑
-        await Task.CompletedTask;
-    }
 
-    private async Task AddModuleAsync()
-    {
-        // TODO: 实现添加模组的逻辑
-        await Task.CompletedTask;
-    }
-
-    private async Task EditAsync()
-    {
-        // TODO: 实现编辑的逻辑
-        await Task.CompletedTask;
-    }
-
-    private async Task DeleteAsync()
-    {
-        // TODO: 实现删除的逻辑
-        await Task.CompletedTask;
+        private void UpdateNode()
+        {
+            if (SelectedNode == null) return;
+            // _systemService.UpdateNode(SelectedNode);
+        }
     }
 }

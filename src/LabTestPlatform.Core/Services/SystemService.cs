@@ -1,78 +1,106 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using LabTestPlatform.Core.Models;
 using LabTestPlatform.Data.Repositories;
+using LabTestPlatform.Data.Entities;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace LabTestPlatform.Core.Services;
-
-public class SystemService : ISystemService
+namespace LabTestPlatform.Core.Services
 {
-    private readonly ISystemRepository _systemRepository;
-    private readonly IPlatformRepository _platformRepository;
-    private readonly IModuleRepository _moduleRepository;
-
-    public SystemService(
-        ISystemRepository systemRepository,
-        IPlatformRepository platformRepository,
-        IModuleRepository moduleRepository)
+    public class SystemService : ISystemService
     {
-        _systemRepository = systemRepository;
-        _platformRepository = platformRepository;
-        _moduleRepository = moduleRepository;
-    }
+        private readonly ISystemRepository _systemRepository;
+        private readonly IPlatformRepository _platformRepository;
+        private readonly IModuleRepository _moduleRepository;
 
-    public async Task<IEnumerable<SystemModel>> GetAllSystemsAsync()
-    {
-        var entities = await _systemRepository.GetAllAsync();
-        return entities.Select(e => new SystemModel
+        public SystemService(ISystemRepository systemRepository, IPlatformRepository platformRepository, IModuleRepository moduleRepository)
         {
-            SystemId = e.SystemId,
-            SystemCode = e.SystemCode,
-            SystemName = e.SystemName,
-            Description = e.Description,
-            Location = e.Location
-        });
-    }
+            _systemRepository = systemRepository;
+            _platformRepository = platformRepository;
+            _moduleRepository = moduleRepository;
+        }
 
-    public async Task<IEnumerable<PlatformModel>> GetPlatformsBySystemIdAsync(int systemId)
-    {
-        var entities = await _platformRepository.GetBySystemIdAsync(systemId);
-        return entities.Select(e => new PlatformModel
+        // System operations
+        // 修正：确保此实现存在
+        public IEnumerable<SystemModel> GetAllSystems()
         {
-            PlatformId = e.PlatformId,
-            SystemId = e.SystemId,
-            PlatformCode = e.PlatformCode,
-            PlatformName = e.PlatformName,
-            PlatformType = e.PlatformType
-        });
-    }
+            return _systemRepository.GetAll().Select(e => new SystemModel { Id = e.Id, Name = e.Name });
+        }
 
-    public async Task<IEnumerable<ModuleModel>> GetModulesByPlatformIdAsync(int platformId)
-    {
-        var entities = await _moduleRepository.GetByPlatformIdAsync(platformId);
-        return entities.Select(e => new ModuleModel
+        public SystemModel GetSystemById(string id)
         {
-            ModuleId = e.ModuleId,
-            PlatformId = e.PlatformId,
-            ModuleCode = e.ModuleCode,
-            ModuleName = e.ModuleName,
-            ModuleType = e.ModuleType,
-            Manufacturer = e.Manufacturer
-        });
-    }
+            var e = _systemRepository.GetById(id);
+            return new SystemModel { Id = e.Id, Name = e.Name };
+        }
 
-    public async Task<IEnumerable<ModuleModel>> GetAllModulesAsync()
-    {
-        var entities = await _moduleRepository.GetAllAsync();
-        return entities.Select(e => new ModuleModel
+        public void AddSystem(SystemModel system)
         {
-            ModuleId = e.ModuleId,
-            PlatformId = e.PlatformId,
-            ModuleCode = e.ModuleCode,
-            ModuleName = e.ModuleName,
-            ModuleType = e.ModuleType,
-            Manufacturer = e.Manufacturer
-        });
+            _systemRepository.Add(new SystemEntity { Id = system.Id, Name = system.Name });
+        }
+
+        public void UpdateSystem(SystemModel system)
+        {
+            _systemRepository.Update(new SystemEntity { Id = system.Id, Name = system.Name });
+        }
+
+        public void DeleteSystem(string id)
+        {
+            _systemRepository.Delete(id);
+        }
+
+        // Platform operations
+        // 修正：确保此实现存在
+        public IEnumerable<PlatformModel> GetPlatformsBySystemId(string systemId)
+        {
+            return _platformRepository.GetBySystemId(systemId).Select(e => new PlatformModel { Id = e.Id, Name = e.Name, SystemId = e.SystemId });
+        }
+
+        public PlatformModel GetPlatformById(string id)
+        {
+            var e = _platformRepository.GetById(id);
+            return new PlatformModel { Id = e.Id, Name = e.Name, SystemId = e.SystemId };
+        }
+
+        public void AddPlatform(PlatformModel platform)
+        {
+            _platformRepository.Add(new PlatformEntity { Id = platform.Id, Name = platform.Name, SystemId = platform.SystemId });
+        }
+
+        public void UpdatePlatform(PlatformModel platform)
+        {
+            _platformRepository.Update(new PlatformEntity { Id = platform.Id, Name = platform.Name, SystemId = platform.SystemId });
+        }
+
+        public void DeletePlatform(string id)
+        {
+            _platformRepository.Delete(id);
+        }
+
+        // Module operations
+        // 修正：确保此实现存在
+        public IEnumerable<ModuleModel> GetModulesByPlatformId(string platformId)
+        {
+            return _moduleRepository.GetByPlatformId(platformId).Select(e => new ModuleModel { Id = e.Id, Name = e.Name, PlatformId = e.PlatformId });
+        }
+
+        public ModuleModel GetModuleById(string id)
+        {
+            var e = _moduleRepository.GetById(id);
+            return new ModuleModel { Id = e.Id, Name = e.Name, PlatformId = e.PlatformId };
+        }
+
+        public void AddModule(ModuleModel module)
+        {
+            _moduleRepository.Add(new ModuleEntity { Id = module.Id, Name = module.Name, PlatformId = module.PlatformId });
+        }
+
+        public void UpdateModule(ModuleModel module)
+        {
+            _moduleRepository.Update(new ModuleEntity { Id = module.Id, Name = module.Name, PlatformId = module.PlatformId });
+        }
+
+        public void DeleteModule(string id)
+        {
+            _moduleRepository.Delete(id);
+        }
     }
 }

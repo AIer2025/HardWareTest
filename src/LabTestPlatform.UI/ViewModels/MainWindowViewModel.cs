@@ -1,56 +1,60 @@
-using System;
-using ReactiveUI;
-using System.Reactive;
-using Microsoft.Extensions.DependencyInjection;
 using LabTestPlatform.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
+using System;
 
-namespace LabTestPlatform.UI.ViewModels;
-
-public class MainWindowViewModel : ViewModelBase
+namespace LabTestPlatform.UI.ViewModels
 {
-    private ViewModelBase _currentPage;
-    private readonly IServiceProvider _serviceProvider;
-
-    public MainWindowViewModel(IServiceProvider serviceProvider)
+    public class MainWindowViewModel : ViewModelBase
     {
-        _serviceProvider = serviceProvider;
-        
-        ShowSystemManagementCommand = ReactiveCommand.Create(ShowSystemManagement);
-        ShowDataImportCommand = ReactiveCommand.Create(ShowDataImport);
-        ShowWeibullAnalysisCommand = ReactiveCommand.Create(ShowWeibullAnalysis);
-        ShowReportExportCommand = ReactiveCommand.Create(ShowReportExport);
+        private ViewModelBase _content;
 
-        _currentPage = new SystemManagementViewModel(serviceProvider);
-    }
+        public ViewModelBase Content
+        {
+            get => _content;
+            set => this.RaiseAndSetIfChanged(ref _content, value);
+        }
 
-    public ViewModelBase CurrentPage
-    {
-        get => _currentPage;
-        set => this.RaiseAndSetIfChanged(ref _currentPage, value);
-    }
+        public SystemManagementViewModel SystemManagement { get; }
+        public DataImportViewModel DataImport { get; }
+        public WeibullAnalysisViewModel WeibullAnalysis { get; }
+        public ReportExportViewModel ReportExport { get; }
 
-    public ReactiveCommand<Unit, Unit> ShowSystemManagementCommand { get; }
-    public ReactiveCommand<Unit, Unit> ShowDataImportCommand { get; }
-    public ReactiveCommand<Unit, Unit> ShowWeibullAnalysisCommand { get; }
-    public ReactiveCommand<Unit, Unit> ShowReportExportCommand { get; }
+        // 修正：修正了构造函数，为其他VM传递 'services'
+        public MainWindowViewModel(IServiceProvider services)
+        {
+            // 1. 只解析 SystemManagementViewModel 需要的服务
+            var systemService = services.GetRequiredService<ISystemService>();
 
-    private void ShowSystemManagement()
-    {
-        CurrentPage = new SystemManagementViewModel(_serviceProvider);
-    }
+            // 2. 将特定服务传递给我们修改过的 VM
+            SystemManagement = new SystemManagementViewModel(systemService);
 
-    private void ShowDataImport()
-    {
-        CurrentPage = new DataImportViewModel(_serviceProvider);
-    }
+            // 3. 将原始的 'services' 传递给所有其他 VM (这修复了 CS1503 和 CS1729)
+            DataImport = new DataImportViewModel(services);
+            WeibullAnalysis = new WeibullAnalysisViewModel(services);
+            ReportExport = new ReportExportViewModel(services);
 
-    private void ShowWeibullAnalysis()
-    {
-        CurrentPage = new WeibullAnalysisViewModel(_serviceProvider);
-    }
+            // 设置默认视图
+            _content = SystemManagement;
+        }
 
-    private void ShowReportExport()
-    {
-        CurrentPage = new ReportExportViewModel(_serviceProvider);
+        public void Navigate(string viewName)
+        {
+            switch (viewName)
+            {
+                case "SystemManagement":
+                    Content = SystemManagement;
+                    break;
+                case "DataImport":
+                    Content = DataImport;
+                    break;
+                case "WeibullAnalysis":
+                    Content = WeibullAnalysis;
+                    break;
+                case "ReportExport":
+                    Content = ReportExport;
+                    break;
+            }
+        }
     }
 }

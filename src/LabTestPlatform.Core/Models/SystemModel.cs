@@ -1,10 +1,8 @@
-namespace LabTestPlatform.Core.Models;
-
-public class SystemModel
+namespace LabTestPlatform.Core.Models
 {
-    public int SystemId { get; set; }
-    public string SystemCode { get; set; } = string.Empty;
-    public string SystemName { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? Location { get; set; }
+    public class SystemModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+    }
 }

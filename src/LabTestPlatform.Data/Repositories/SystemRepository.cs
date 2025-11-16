@@ -1,63 +1,47 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Dapper;
 using LabTestPlatform.Data.Context;
 using LabTestPlatform.Data.Entities;
+using System.Collections.Generic;
 
-namespace LabTestPlatform.Data.Repositories;
-
-public class SystemRepository : ISystemRepository
+namespace LabTestPlatform.Data.Repositories
 {
-    private readonly IDbConnectionFactory _connectionFactory;
-
-    public SystemRepository(IDbConnectionFactory connectionFactory)
+    public class SystemRepository : ISystemRepository
     {
-        _connectionFactory = connectionFactory;
-    }
+        private readonly IDbConnectionFactory _connectionFactory;
 
-    public async Task<IEnumerable<SystemEntity>> GetAllAsync()
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = "SELECT * FROM tb_system WHERE is_active = 1 ORDER BY system_code";
-        return await conn.QueryAsync<SystemEntity>(sql);
-    }
+        public SystemRepository(IDbConnectionFactory connectionFactory)
+        {
+            _connectionFactory = connectionFactory;
+        }
 
-    public async Task<SystemEntity?> GetByIdAsync(int systemId)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = "SELECT * FROM tb_system WHERE system_id = @SystemId";
-        return await conn.QueryFirstOrDefaultAsync<SystemEntity>(sql, new { SystemId = systemId });
-    }
+        public IEnumerable<SystemEntity> GetAll()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return connection.Query<SystemEntity>("SELECT * FROM Systems");
+        }
 
-    public async Task<int> InsertAsync(SystemEntity system)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = @"
-            INSERT INTO tb_system (system_code, system_name, description, location, is_active)
-            VALUES (@SystemCode, @SystemName, @Description, @Location, @IsActive);
-            SELECT LAST_INSERT_ID();";
-        return await conn.ExecuteScalarAsync<int>(sql, system);
-    }
+        public SystemEntity GetById(string id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return connection.QuerySingleOrDefault<SystemEntity>("SELECT * FROM Systems WHERE Id = @Id", new { Id = id });
+        }
 
-    public async Task<bool> UpdateAsync(SystemEntity system)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = @"
-            UPDATE tb_system SET
-                system_name = @SystemName,
-                description = @Description,
-                location = @Location,
-                is_active = @IsActive
-            WHERE system_id = @SystemId";
-        var affected = await conn.ExecuteAsync(sql, system);
-        return affected > 0;
-    }
+        public void Add(SystemEntity entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Execute("INSERT INTO Systems (Id, Name) VALUES (@Id, @Name)", entity);
+        }
 
-    public async Task<bool> DeleteAsync(int systemId)
-    {
-        using var conn = await _connectionFactory.CreateConnectionAsync();
-        var sql = "UPDATE tb_system SET is_active = 0 WHERE system_id = @SystemId";
-        var affected = await conn.ExecuteAsync(sql, new { SystemId = systemId });
-        return affected > 0;
+        public void Update(SystemEntity entity)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Execute("UPDATE Systems SET Name = @Name WHERE Id = @Id", entity);
+        }
+
+        public void Delete(string id)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            connection.Execute("DELETE FROM Systems WHERE Id = @Id", new { Id = id });
+        }
     }
 }

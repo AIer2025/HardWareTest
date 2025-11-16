@@ -3,221 +3,67 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:LabTestPlatform.UI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             xmlns:models="using:LabTestPlatform.UI.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LabTestPlatform.UI.Views.SystemManagementView"
-             x:DataType="vm:SystemManagementViewModel"
-             x:CompileBindings="True">
-    
-    <Design.DataContext>
-        <vm:SystemManagementViewModel />
-    </Design.DataContext>
-
-    <Grid RowDefinitions="Auto,*,Auto" Margin="10">
-        
-        <!-- 标题栏 -->
-        <Border Grid.Row="0" 
-                Background="#2C3E50" 
-                Padding="15,10" 
-                CornerRadius="5"
-                Margin="0,0,0,10">
-            <TextBlock Text="系统管理" 
-                       FontSize="20" 
-                       FontWeight="Bold"
-                       Foreground="White"/>
+             x:DataType="vm:SystemManagementViewModel">
+    <Grid ColumnDefinitions="300, *">
+        <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="0,0,1,0" Padding="5">
+            <TreeView ItemsSource="{Binding SystemNodes}" SelectedItem="{Binding SelectedNode}">
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate ItemsSource="{Binding Children}" DataType="models:SystemNode">
+                        <TextBlock Text="{Binding Name}" />
+                    </TreeDataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
         </Border>
 
-        <!-- 主内容区域 -->
-        <Grid Grid.Row="1" ColumnDefinitions="300,*">
-            
-            <!-- 左侧：系统树形结构 -->
-            <Border Grid.Column="0" 
-                    Background="White" 
-                    BorderBrush="#BDC3C7" 
-                    BorderThickness="1" 
-                    CornerRadius="5"
-                    Padding="10"
-                    Margin="0,0,10,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" 
-                               Text="系统层级结构" 
-                               FontWeight="Bold" 
-                               FontSize="14"
-                               Margin="0,0,0,10"/>
-                    
-                    <TreeView ItemsSource="{Binding Systems}"
-                              SelectedItem="{Binding SelectedNode}">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal" Margin="2">
-                                    <TextBlock Text="{Binding Icon}" 
-                                               FontSize="14" 
-                                               Margin="0,0,5,0"/>
-                                    <TextBlock Text="{Binding Name}" 
-                                               FontSize="13"/>
-                                </StackPanel>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </DockPanel>
-            </Border>
+        <Grid Grid.Column="1" RowDefinitions="Auto, *" Margin="10">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+                <Button Content="添加系统" Command="{Binding AddSystemCommand}" />
+                <Button Content="添加平台" Command="{Binding AddPlatformCommand}" />
+                <Button Content="添加模块" Command="{Binding AddModuleCommand}" />
+                <Button Content="删除" Command="{Binding DeleteNodeCommand}" />
+            </StackPanel>
 
-            <!-- 右侧：模组详细信息 -->
-            <Border Grid.Column="1" 
-                    Background="White" 
-                    BorderBrush="#BDC3C7" 
-                    BorderThickness="1" 
-                    CornerRadius="5"
-                    Padding="10">
-                <DockPanel>
-                    
-                    <!-- 模组信息标题 -->
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-                        <TextBlock Text="模组信息" 
-                                   FontWeight="Bold" 
-                                   FontSize="14"
-                                   Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding SelectedNodeInfo}" 
-                                   FontSize="12"
-                                   Foreground="#7F8C8D"/>
-                    </StackPanel>
+            <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Padding="10">
+                <ContentControl Content="{Binding SelectedNode}">
+                    <ContentControl.DataTemplates>
+                        <DataTemplate DataType="models:SystemNode">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="系统详情" FontSize="18" FontWeight="Bold" />
+                                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="名称:" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Margin="5,0,0,0" />
+                                </Grid>
+                                <Button Content="保存" Command="{Binding DataContext.UpdateNodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                        </DataTemplate>
 
-                    <!-- 模组列表 -->
-                    <ListBox ItemsSource="{Binding Modules}"
-                             SelectedItem="{Binding SelectedModule}"
-                             Background="#FAFAFA">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="White"
-                                        BorderBrush="#E0E0E0"
-                                        BorderThickness="1"
-                                        CornerRadius="5"
-                                        Padding="10"
-                                        Margin="5">
-                                    <Grid RowDefinitions="Auto,Auto,Auto">
-                                        <!-- 标题行 -->
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                                            <TextBlock Text="{Binding ModuleId}" 
-                                                       FontWeight="Bold"
-                                                       FontSize="14"
-                                                       Foreground="#2C3E50"/>
-                                            <TextBlock Text=" - " 
-                                                       Margin="5,0"/>
-                                            <TextBlock Text="{Binding ModuleName}" 
-                                                       FontWeight="Bold"
-                                                       FontSize="14"
-                                                       Foreground="#34495E"/>
-                                        </StackPanel>
-                                        
-                                        <!-- 详细信息行 -->
-                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="15" Margin="0,5,0,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="平台: " Foreground="#7F8C8D"/>
-                                                <TextBlock Text="{Binding PlatformName}"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="系统: " Foreground="#7F8C8D"/>
-                                                <TextBlock Text="{Binding SystemName}"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                        
-                                        <!-- 统计信息行 -->
-                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="15" Margin="0,5,0,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="测试数量: " Foreground="#7F8C8D"/>
-                                                <TextBlock Text="{Binding TestCount}" FontWeight="Bold"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="创建日期: " Foreground="#7F8C8D"/>
-                                                <TextBlock Text="{Binding CreateDate, StringFormat='yyyy-MM-dd'}"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
+                        <DataTemplate DataType="models:SystemNode">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="平台详情" FontSize="18" FontWeight="Bold" />
+                                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="名称:" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Margin="5,0,0,0" />
+                                </Grid>
+                                <Button Content="保存" Command="{Binding DataContext.UpdateNodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                        </DataTemplate>
+
+                        <DataTemplate DataType="models:SystemNode">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="模块详情" FontSize="18" FontWeight="Bold" />
+                                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="名称:" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}" Margin="5,0,0,0" />
+                                </Grid>
+                                <Button Content="保存" Command="{Binding DataContext.UpdateNodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ContentControl.DataTemplates>
+                </ContentControl>
             </Border>
         </Grid>
-
-        <!-- 操作按钮区域 -->
-        <Border Grid.Row="2" 
-                Background="#ECF0F1" 
-                Padding="10" 
-                CornerRadius="5"
-                Margin="0,10,0,0">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                
-                <Button Content="刷新数据" 
-                        Command="{Binding LoadDataCommand}"
-                        Padding="15,8"
-                        Background="#3498DB"
-                        Foreground="White"
-                        CornerRadius="3"/>
-                
-                <Button Content="添加系统" 
-                        Command="{Binding AddSystemCommand}"
-                        Padding="15,8"
-                        Background="#27AE60"
-                        Foreground="White"
-                        CornerRadius="3"/>
-                
-                <Button Content="添加平台" 
-                        Command="{Binding AddPlatformCommand}"
-                        Padding="15,8"
-                        Background="#16A085"
-                        Foreground="White"
-                        CornerRadius="3"
-                        IsEnabled="{Binding CanAddPlatform}"/>
-                
-                <Button Content="添加模组" 
-                        Command="{Binding AddModuleCommand}"
-                        Padding="15,8"
-                        Background="#2ECC71"
-                        Foreground="White"
-                        CornerRadius="3"
-                        IsEnabled="{Binding CanAddModule}"/>
-                
-                <Button Content="编辑" 
-                        Command="{Binding EditCommand}"
-                        Padding="15,8"
-                        Background="#F39C12"
-                        Foreground="White"
-                        CornerRadius="3"
-                        IsEnabled="{Binding CanEdit}"/>
-                
-                <Button Content="删除" 
-                        Command="{Binding DeleteCommand}"
-                        Padding="15,8"
-                        Background="#E74C3C"
-                        Foreground="White"
-                        CornerRadius="3"
-                        IsEnabled="{Binding CanDelete}"/>
-                
-                <!-- 统计信息 -->
-                <Border Background="White" 
-                        Padding="10,5" 
-                        CornerRadius="3"
-                        BorderBrush="#BDC3C7"
-                        BorderThickness="1"
-                        HorizontalAlignment="Right"
-                        Margin="0,0,0,0">
-                    <StackPanel Orientation="Horizontal" Spacing="20">
-                        <TextBlock>
-                            <Run Text="系统数: " FontWeight="Bold"/>
-                            <Run Text="{Binding SystemCount}"/>
-                        </TextBlock>
-                        <TextBlock>
-                            <Run Text="平台数: " FontWeight="Bold"/>
-                            <Run Text="{Binding PlatformCount}"/>
-                        </TextBlock>
-                        <TextBlock>
-                            <Run Text="模组数: " FontWeight="Bold"/>
-                            <Run Text="{Binding ModuleCount}"/>
-                        </TextBlock>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </Border>
     </Grid>
 </UserControl>

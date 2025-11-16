@@ -5,6 +5,7 @@
       <map>
         <entry key="src/LabTestPlatform.UI/Views/DataImportView.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
         <entry key="src/LabTestPlatform.UI/Views/ReportExportView.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
+        <entry key="src/LabTestPlatform.UI/Views/SystemManagementView.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
       </map>
     </option>
   </component>
