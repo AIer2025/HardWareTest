@@ -4,7 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:LabTestPlatform.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-             x:Class="LabTestPlatform.UI.Views.ReportExportView">
+             x:Class="LabTestPlatform.UI.Views.ReportExportView"
+             x:DataType="vm:ReportExportViewModel"
+             x:CompileBindings="True">
     
     <Design.DataContext>
         <vm:ReportExportViewModel />
@@ -125,15 +127,13 @@
                                        VerticalAlignment="Center"/>
                             <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto,*">
                                 <DatePicker Grid.Column="0"
-                                            SelectedDate="{Binding StartDate}"
-                                            Watermark="开始日期"/>
+                                            SelectedDate="{Binding StartDate}"/>
                                 <TextBlock Grid.Column="1" 
                                            Text=" 至 " 
                                            VerticalAlignment="Center"
                                            Margin="5,0"/>
                                 <DatePicker Grid.Column="2"
-                                            SelectedDate="{Binding EndDate}"
-                                            Watermark="结束日期"/>
+                                            SelectedDate="{Binding EndDate}"/>
                             </Grid>
                         </Grid>
                     </StackPanel>
