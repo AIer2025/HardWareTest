@@ -1,256 +1,62 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:LabTestPlatform.ViewModels"
+        xmlns:vm="using:LabTestPlatform.UI.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
-        x:Class="LabTestPlatform.Views.MainWindow"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="LabTestPlatform.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="实验室测试平台 - 威布尔分析系统"
-        Width="1400" Height="900"
-        WindowStartupLocation="CenterScreen">
+        Title="深圳实验室测试平台 v1.0"
+        Width="1200" Height="800">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto">
-        <!-- 标题栏 -->
-        <Border Grid.Row="0" Background="#2196F3" Padding="20,15">
-            <StackPanel>
-                <TextBlock Text="深圳实验室测试平台" 
-                          FontSize="24" 
-                          FontWeight="Bold" 
-                          Foreground="White"/>
-                <TextBlock Text="威布尔可靠性分析系统 v1.0" 
-                          FontSize="14" 
-                          Foreground="White" 
-                          Opacity="0.9"
-                          Margin="0,5,0,0"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部菜单栏 -->
+        <Border Grid.Row="0" Background="#2C3E50" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Content="系统管理" 
+                        Command="{Binding ShowSystemManagementCommand}"
+                        Classes="menu-button"/>
+                <Button Content="数据导入" 
+                        Command="{Binding ShowDataImportCommand}"
+                        Classes="menu-button"/>
+                <Button Content="威布尔分析" 
+                        Command="{Binding ShowWeibullAnalysisCommand}"
+                        Classes="menu-button"/>
+                <Button Content="报告导出" 
+                        Command="{Binding ShowReportExportCommand}"
+                        Classes="menu-button"/>
             </StackPanel>
         </Border>
 
         <!-- 主内容区 -->
-        <Grid Grid.Row="1" ColumnDefinitions="300,*" Margin="10">
-            
-            <!-- 左侧导航树 -->
-            <Border Grid.Column="0" 
-                    BorderBrush="#CCCCCC" 
-                    BorderThickness="1" 
-                    CornerRadius="5"
-                    Margin="0,0,10,0">
-                <Grid RowDefinitions="Auto,*,Auto">
-                    
-                    <!-- 导航标题 -->
-                    <Border Grid.Row="0" 
-                            Background="#F5F5F5" 
-                            Padding="15,10"
-                            CornerRadius="5,5,0,0">
-                        <TextBlock Text="系统层级" 
-                                  FontSize="16" 
-                                  FontWeight="Bold"/>
-                    </Border>
-
-                    <!-- 层级选择 -->
-                    <ScrollViewer Grid.Row="1" Margin="10">
-                        <StackPanel Spacing="15">
-                            
-                            <!-- 系统选择 -->
-                            <StackPanel>
-                                <TextBlock Text="系统" FontWeight="Bold" Margin="0,0,0,5"/>
-                                <ComboBox ItemsSource="{Binding Systems}"
-                                         SelectedItem="{Binding SelectedSystem}"
-                                         DisplayMemberBinding="{Binding SystemName}"
-                                         HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-
-                            <!-- 平台选择 -->
-                            <StackPanel IsVisible="{Binding SelectedSystem, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                <TextBlock Text="平台" FontWeight="Bold" Margin="0,0,0,5"/>
-                                <ComboBox ItemsSource="{Binding Platforms}"
-                                         SelectedItem="{Binding SelectedPlatform}"
-                                         DisplayMemberBinding="{Binding PlatformName}"
-                                         HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-
-                            <!-- 模组选择 -->
-                            <StackPanel IsVisible="{Binding SelectedPlatform, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                <TextBlock Text="模组" FontWeight="Bold" Margin="0,0,0,5"/>
-                                <ComboBox ItemsSource="{Binding Modules}"
-                                         SelectedItem="{Binding SelectedModule}"
-                                         DisplayMemberBinding="{Binding ModuleName}"
-                                         HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-
-                            <!-- 模组详细信息 -->
-                            <Border IsVisible="{Binding SelectedModule, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                   Background="#F9F9F9"
-                                   Padding="10"
-                                   CornerRadius="5">
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="模组信息" FontWeight="Bold" FontSize="14"/>
-                                    <TextBlock Text="{Binding SelectedModule.ModuleCode, StringFormat='编码: {0}'}" FontSize="12"/>
-                                    <TextBlock Text="{Binding SelectedModule.Type, StringFormat='类型: {0}'}" FontSize="12"/>
-                                    <TextBlock Text="{Binding SelectedModule.Status, StringFormat='状态: {0}'}" FontSize="12"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <!-- 操作按钮 -->
-                    <StackPanel Grid.Row="2" Spacing="10" Margin="10">
-                        <Button Content="刷新系统列表" 
-                               Command="{Binding LoadSystemsCommand}"
-                               HorizontalAlignment="Stretch"
-                               HorizontalContentAlignment="Center"/>
-                        <Button Content="生成导入模板" 
-                               Command="{Binding GenerateTemplateCommand}"
-                               HorizontalAlignment="Stretch"
-                               HorizontalContentAlignment="Center"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- 右侧主要内容 -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,*">
-                
-                <!-- 工具栏 -->
-                <Border Grid.Row="0" 
-                       Background="#F5F5F5" 
-                       Padding="15,10"
-                       CornerRadius="5"
-                       Margin="0,0,0,10">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Content="导入Excel数据" 
-                               Command="{Binding ImportExcelCommand}"
-                               IsEnabled="{Binding SelectedModule, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        <Button Content="执行威布尔分析" 
-                               Command="{Binding PerformWeibullAnalysisCommand}"
-                               IsEnabled="{Binding SelectedModule, Converter={x:Static ObjectConverters.IsNotNull}}"
-                               Background="#4CAF50"
-                               Foreground="White"/>
-                        <Button Content="导出分析报告" 
-                               Command="{Binding ExportReportCommand}"
-                               IsEnabled="{Binding SelectedModule, Converter={x:Static ObjectConverters.IsNotNull}}"
-                               Background="#FF9800"
-                               Foreground="White"/>
-                        <Separator Width="1" Background="#CCCCCC"/>
-                        <TextBlock Text="{Binding TestData.Count, StringFormat='数据量: {0} 条'}" 
-                                  VerticalAlignment="Center"
-                                  FontWeight="Bold"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- 数据网格 -->
-                <TabControl Grid.Row="1">
-                    
-                    <!-- 测试数据标签页 -->
-                    <TabItem Header="测试数据">
-                        <DataGrid ItemsSource="{Binding TestData}"
-                                 AutoGenerateColumns="False"
-                                 IsReadOnly="True"
-                                 GridLinesVisibility="All"
-                                 BorderBrush="#CCCCCC"
-                                 BorderThickness="1">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="测试时间" 
-                                                   Binding="{Binding TestTime, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" 
-                                                   Width="150"/>
-                                <DataGridTextColumn Header="测试类型" 
-                                                   Binding="{Binding TestType}" 
-                                                   Width="100"/>
-                                <DataGridTextColumn Header="测试值" 
-                                                   Binding="{Binding TestValue, StringFormat='{}{0:F2}'}" 
-                                                   Width="100"/>
-                                <DataGridTextColumn Header="单位" 
-                                                   Binding="{Binding Unit}" 
-                                                   Width="60"/>
-                                <DataGridTextColumn Header="温度(°C)" 
-                                                   Binding="{Binding Temperature, StringFormat='{}{0:F1}'}" 
-                                                   Width="80"/>
-                                <DataGridTextColumn Header="湿度(%)" 
-                                                   Binding="{Binding Humidity, StringFormat='{}{0:F1}'}" 
-                                                   Width="80"/>
-                                <DataGridTextColumn Header="电压(V)" 
-                                                   Binding="{Binding Voltage, StringFormat='{}{0:F2}'}" 
-                                                   Width="80"/>
-                                <DataGridTextColumn Header="电流(A)" 
-                                                   Binding="{Binding Current, StringFormat='{}{0:F2}'}" 
-                                                   Width="80"/>
-                                <DataGridTextColumn Header="状态" 
-                                                   Binding="{Binding Status}" 
-                                                   Width="80"/>
-                                <DataGridTextColumn Header="操作员" 
-                                                   Binding="{Binding Operator}" 
-                                                   Width="80"/>
-                                <DataGridTextColumn Header="来源" 
-                                                   Binding="{Binding ImportSource}" 
-                                                   Width="80"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </TabItem>
-
-                    <!-- 数据分析标签页 -->
-                    <TabItem Header="威布尔分析">
-                        <ScrollViewer>
-                            <StackPanel Margin="20" Spacing="20">
-                                <TextBlock Text="威布尔分析结果将在此显示" 
-                                          FontSize="16" 
-                                          HorizontalAlignment="Center"
-                                          Margin="0,50,0,0"/>
-                                <TextBlock Text="点击"执行威布尔分析"按钮开始分析" 
-                                          FontSize="14" 
-                                          HorizontalAlignment="Center"
-                                          Foreground="Gray"/>
-                                
-                                <!-- 这里可以添加图表显示 -->
-                                <!-- 使用ScottPlot或OxyPlot显示威布尔分布图 -->
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-
-                    <!-- 报告预览标签页 -->
-                    <TabItem Header="报告预览">
-                        <ScrollViewer>
-                            <StackPanel Margin="20" Spacing="20">
-                                <TextBlock Text="分析报告预览" 
-                                          FontSize="16" 
-                                          HorizontalAlignment="Center"
-                                          Margin="0,50,0,0"/>
-                                <TextBlock Text="生成报告后可在此预览" 
-                                          FontSize="14" 
-                                          HorizontalAlignment="Center"
-                                          Foreground="Gray"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                </TabControl>
-            </Grid>
-        </Grid>
+        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" Margin="10"/>
 
         <!-- 状态栏 -->
-        <Border Grid.Row="2" 
-               Background="#F5F5F5" 
-               BorderBrush="#CCCCCC" 
-               BorderThickness="0,1,0,0"
-               Padding="15,8">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
-                    <TextBlock Text="状态:" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding StatusMessage}"/>
-                </StackPanel>
-                
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                    <ProgressBar IsIndeterminate="True" 
-                                IsVisible="{Binding IsBusy}"
-                                Width="100"
-                                Height="4"/>
-                    <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
-                              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-                              Foreground="Gray"/>
-                </StackPanel>
-            </Grid>
+        <Border Grid.Row="2" Background="#34495E" Padding="10">
+            <TextBlock Text="就绪" Foreground="White"/>
         </Border>
     </Grid>
+
+    <Window.Styles>
+        <Style Selector="Button.menu-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.menu-button:pointerover">
+            <Setter Property="Background" Value="#34495E"/>
+        </Style>
+    </Window.Styles>
 </Window>

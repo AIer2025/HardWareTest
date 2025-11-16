@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace LabTestPlatform.UI.Views;
 
-public partial class MainWindow : Window
+public partial class ReportExportView : UserControl
 {
-    public MainWindow()
+    public ReportExportView()
     {
         InitializeComponent();
     }
