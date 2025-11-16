@@ -217,9 +217,9 @@ public class SystemManagementViewModel : ViewModelBase
             else if (node.NodeType == "System" && node.Data is SystemModel system)
             {
                 var platforms = await _systemService.GetPlatformsBySystemIdAsync(system.SystemId);
-                foreach (var platform in platforms)
+                foreach (var plat in platforms)
                 {
-                    var modules = await _systemService.GetModulesByPlatformIdAsync(platform.PlatformId);
+                    var modules = await _systemService.GetModulesByPlatformIdAsync(plat.PlatformId);
                     foreach (var module in modules)
                     {
                         Modules.Add(module);

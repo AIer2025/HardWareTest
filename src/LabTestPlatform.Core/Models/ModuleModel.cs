@@ -1,3 +1,5 @@
+using System;
+
 namespace LabTestPlatform.Core.Models;
 
 public class ModuleModel
