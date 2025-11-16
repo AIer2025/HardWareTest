@@ -159,7 +159,7 @@
                                       IsChecked="{Binding IncludeStatistics}"/>
                             <CheckBox Content="包含置信区间" 
                                       IsChecked="{Binding IncludeConfidenceInterval}"/>
-                            <CheckBox Content="添加封面页" 
+                            <CheckBox Content="添加封面" 
                                       IsChecked="{Binding AddCoverPage}"/>
                             <CheckBox Content="添加目录" 
                                       IsChecked="{Binding AddTableOfContents}"/>
@@ -299,7 +299,7 @@
                                  Height="150"
                                  Background="#FAFAFA">
                             <ListBox.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate x:CompileBindings="False">
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" 
                                                    Text="📄" 
@@ -314,7 +314,7 @@
                                         </StackPanel>
                                         <Button Grid.Column="2"
                                                 Content="打开"
-                                                Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                Command="{Binding $parent[UserControl].((vm:ReportExportViewModel)DataContext).OpenFileCommand}"
                                                 CommandParameter="{Binding FilePath}"
                                                 Padding="8,4"
                                                 Background="#3498DB"
