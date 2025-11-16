@@ -19,4 +19,8 @@ public class TestData
     public decimal? Humidity { get; set; }
     public string? Operator { get; set; }
     public string? Remarks { get; set; }
+    
+    // 添加缺失的属性
+    public bool IsFailure => FailureTime.HasValue && !IsCensored;
+    public double Time => FailureTime.HasValue ? (double)FailureTime.Value : (double)TestCycle.GetValueOrDefault();
 }

@@ -6,4 +6,7 @@ public interface IReportService
 {
     Task<string> GeneratePdfReportAsync(int analysisId, string savePath);
     Task<string> GenerateExcelReportAsync(int analysisId, string savePath);
+    
+    // 添加缺失的方法
+    Task GenerateReportAsync(string reportType, string entityId, string savePath, string format);
 }
