@@ -32,9 +32,23 @@ public class WeibullAnalysisService : IWeibullAnalysisService
         return _weibullEngine.Analyze(failureTimes.ToArray(), null, confidenceLevel);
     }
 
-    public IEnumerable<TestData> GetTestDataByModuleId(int moduleId)
+    /// <summary>
+    /// 根据模块 ID 获取测试数据
+    /// </summary>
+    /// <param name="moduleId">模块 ID（字符串类型）</param>
+    /// <returns>测试数据集合</returns>
+    public IEnumerable<TestData> GetTestDataByModuleId(string moduleId)
     {
-        var entities = _testDataRepository.GetByModuleIdAsync(moduleId).GetAwaiter().GetResult();
+        // 将字符串类型的 moduleId 转换为 int 类型
+        // 因为数据库中 TestData.ModuleId 是 int 类型
+        if (!int.TryParse(moduleId, out int moduleIdInt))
+        {
+            // 如果 moduleId 不是有效的整数，返回空集合
+            // 可以考虑记录日志或抛出异常，取决于业务需求
+            return Enumerable.Empty<TestData>();
+        }
+        
+        var entities = _testDataRepository.GetByModuleIdAsync(moduleIdInt).GetAwaiter().GetResult();
         return entities.Select(e => new TestData
         {
             TestId = e.TestId,
