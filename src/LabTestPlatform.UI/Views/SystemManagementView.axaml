@@ -201,7 +201,7 @@
                         BorderBrush="#BDC3C7"
                         BorderThickness="1"
                         HorizontalAlignment="Right"
-                        Margin="Auto,0,0,0">
+                        Margin="0,0,0,0">
                     <StackPanel Orientation="Horizontal" Spacing="20">
                         <TextBlock>
                             <Run Text="系统数: " FontWeight="Bold"/>
