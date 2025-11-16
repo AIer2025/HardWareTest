@@ -2,23 +2,30 @@ using LabTestPlatform.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using System;
+using System.Windows.Input;
 
 namespace LabTestPlatform.UI.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private ViewModelBase _content;
+        private ViewModelBase _currentPage;
 
-        public ViewModelBase Content
+        public ViewModelBase CurrentPage
         {
-            get => _content;
-            set => this.RaiseAndSetIfChanged(ref _content, value);
+            get => _currentPage;
+            set => this.RaiseAndSetIfChanged(ref _currentPage, value);
         }
 
         public SystemManagementViewModel SystemManagement { get; }
         public DataImportViewModel DataImport { get; }
         public WeibullAnalysisViewModel WeibullAnalysis { get; }
         public ReportExportViewModel ReportExport { get; }
+
+        // Commands for navigation
+        public ICommand ShowSystemManagementCommand { get; }
+        public ICommand ShowDataImportCommand { get; }
+        public ICommand ShowWeibullAnalysisCommand { get; }
+        public ICommand ShowReportExportCommand { get; }
 
         // 修正：修正了构造函数，为其他VM传递 'services'
         public MainWindowViewModel(IServiceProvider services)
@@ -34,8 +41,14 @@ namespace LabTestPlatform.UI.ViewModels
             WeibullAnalysis = new WeibullAnalysisViewModel(services);
             ReportExport = new ReportExportViewModel(services);
 
+            // Initialize commands
+            ShowSystemManagementCommand = ReactiveCommand.Create(() => Navigate("SystemManagement"));
+            ShowDataImportCommand = ReactiveCommand.Create(() => Navigate("DataImport"));
+            ShowWeibullAnalysisCommand = ReactiveCommand.Create(() => Navigate("WeibullAnalysis"));
+            ShowReportExportCommand = ReactiveCommand.Create(() => Navigate("ReportExport"));
+
             // 设置默认视图
-            _content = SystemManagement;
+            _currentPage = SystemManagement;
         }
 
         public void Navigate(string viewName)
@@ -43,16 +56,16 @@ namespace LabTestPlatform.UI.ViewModels
             switch (viewName)
             {
                 case "SystemManagement":
-                    Content = SystemManagement;
+                    CurrentPage = SystemManagement;
                     break;
                 case "DataImport":
-                    Content = DataImport;
+                    CurrentPage = DataImport;
                     break;
                 case "WeibullAnalysis":
-                    Content = WeibullAnalysis;
+                    CurrentPage = WeibullAnalysis;
                     break;
                 case "ReportExport":
-                    Content = ReportExport;
+                    CurrentPage = ReportExport;
                     break;
             }
         }

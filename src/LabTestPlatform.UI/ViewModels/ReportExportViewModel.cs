@@ -13,6 +13,14 @@ using System.Reactive.Linq; // 确保此 using 存在
 
 namespace LabTestPlatform.UI.ViewModels
 {
+    // Helper class for export history items
+    public class ExportHistoryItem
+    {
+        public string FileName { get; set; } = string.Empty;
+        public string ExportDate { get; set; } = string.Empty;
+        public string FileSize { get; set; } = string.Empty;
+    }
+
     public class ReportExportViewModel : ViewModelBase
     {
         private readonly IReportService _reportService;
@@ -67,6 +75,13 @@ namespace LabTestPlatform.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedFormat, value);
         }
 
+        private ObservableCollection<ExportHistoryItem> _exportHistory;
+        public ObservableCollection<ExportHistoryItem> ExportHistory
+        {
+            get => _exportHistory;
+            set => this.RaiseAndSetIfChanged(ref _exportHistory, value);
+        }
+
         public Interaction<Unit, IStorageFile?> ShowSaveFileDialog { get; }
 
         public ReactiveCommand<Unit, Unit> GenerateReportCommand { get; }
@@ -79,6 +94,7 @@ namespace LabTestPlatform.UI.ViewModels
             _systems = new ObservableCollection<SystemModel>();
             _platforms = new ObservableCollection<PlatformModel>();
             _modules = new ObservableCollection<ModuleModel>();
+            _exportHistory = new ObservableCollection<ExportHistoryItem>();
 
             ShowSaveFileDialog = new Interaction<Unit, IStorageFile?>();
 
@@ -139,6 +155,21 @@ namespace LabTestPlatform.UI.ViewModels
 
                 // 这是您仓库中的正确名称
                 await _reportService.GenerateReportAsync(reportType, entityId, file.Path.LocalPath, _selectedFormat);
+                
+                // Add to export history
+                var fileName = System.IO.Path.GetFileName(file.Path.LocalPath);
+                ExportHistory.Insert(0, new ExportHistoryItem
+                {
+                    FileName = fileName,
+                    ExportDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
+                    FileSize = "N/A" // Could calculate actual size if needed
+                });
+                
+                // Keep only the last 10 items
+                while (ExportHistory.Count > 10)
+                {
+                    ExportHistory.RemoveAt(ExportHistory.Count - 1);
+                }
                 
             }
             catch (Exception ex)
