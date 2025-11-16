@@ -130,7 +130,6 @@ namespace LabTestPlatform.UI.ViewModels
             TestData.Clear();
             if (module != null)
             {
-                // 这是您仓库中的正确名称
                 var data = _analysisService.GetTestDataByModuleId(module.Id);
                 TestData = new ObservableCollection<TestData>(data);
             }
@@ -140,40 +139,35 @@ namespace LabTestPlatform.UI.ViewModels
         {
             if (TestData.Count == 0) return;
 
-            // 这是您仓库中的正确名称
             var failures = TestData.Where(d => d.IsFailure).Select(d => d.Time).ToArray();
             var suspensions = TestData.Where(d => !d.IsFailure).Select(d => d.Time).ToArray();
-
-            // 这是您仓库中的正确名称
+            
             var (beta, eta) = _analysisService.CalculateWeibullParameters(failures, suspensions);
 
-            // 绘制
             AvaPlot.Plot.Clear();
             
             if (failures.Length > 0)
             {
                 double[] failureTimes = failures.OrderBy(t => t).ToArray();
-                // 这是您仓库中的正确名称
                 double[] failureProbabilities = _analysisService.GetFailureProbabilities(failureTimes.Length);
 
-                // 转换为 Weibull 绘图坐标
                 double[] xData = failureTimes.Select(t => Math.Log(t)).ToArray();
                 double[] yData = failureProbabilities.Select(p => Math.Log(-Math.Log(1 - p))).ToArray();
 
-                // 修正：Add.Scatter 使用 Coordinates[]
-                var coords = xData.Zip(yData, (x, y) => new Coordinates(x, y)).ToArray();
-                var scatter = AvaPlot.Plot.Add.Scatter(coords);
+                // 修正：Add.Scatter 可以接受 (double[] x, double[] y)
+                var scatter = AvaPlot.Plot.Add.Scatter(xData, yData);
                 scatter.Label = "Data Points";
 
                 // 添加拟合线
                 double[] fitX = { xData.First(), xData.Last() };
                 double[] fitY = { (fitX[0] - Math.Log(eta)) * beta, (fitX[1] - Math.Log(eta)) * beta };
                 
-                // 修正：Add.Line 使用两个 double[]，而不是 Coordinates[]
-                var line = AvaPlot.Plot.Add.Line(fitX, fitY);
+                // 修正：使用 Add.Scatter 绘制拟合线 (修复 CS1503)
+                var line = AvaPlot.Plot.Add.Scatter(fitX, fitY);
                 line.Label = "Weibull Fit";
                 line.LineStyle.Width = 2;
                 line.LineStyle.Color = Color.FromHex("#FF0000");
+                line.MarkerSize = 0; // 隐藏拟合线上的点
             }
 
             AvaPlot.Plot.Title($"Weibull Plot (Beta: {beta:F2}, Eta: {eta:F2})");
