@@ -314,7 +314,7 @@
                                         </StackPanel>
                                         <Button Grid.Column="2"
                                                 Content="打开"
-                                                Command="{Binding $parent[UserControl].DataContext.OpenFileCommand}"
+                                                Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding FilePath}"
                                                 Padding="8,4"
                                                 Background="#3498DB"
