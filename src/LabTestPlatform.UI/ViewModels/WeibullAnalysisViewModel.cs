@@ -59,6 +59,21 @@ namespace LabTestPlatform.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedModule, value);
         }
 
+        // 添加辅助属性用于控制UI状态
+        private bool _hasSelectedSystem;
+        public bool HasSelectedSystem
+        {
+            get => _hasSelectedSystem;
+            set => this.RaiseAndSetIfChanged(ref _hasSelectedSystem, value);
+        }
+
+        private bool _hasSelectedPlatform;
+        public bool HasSelectedPlatform
+        {
+            get => _hasSelectedPlatform;
+            set => this.RaiseAndSetIfChanged(ref _hasSelectedPlatform, value);
+        }
+
         private ObservableCollection<TestData> _testData;
         public ObservableCollection<TestData> TestData
         {
@@ -81,11 +96,20 @@ namespace LabTestPlatform.UI.ViewModels
 
             AnalyzeCommand = ReactiveCommand.Create(Analyze);
 
+            // 监听选择变化并更新数据
             this.WhenAnyValue(x => x.SelectedSystem)
-                .Subscribe(system => LoadPlatforms(system));
+                .Subscribe(system =>
+                {
+                    HasSelectedSystem = system != null;
+                    LoadPlatforms(system);
+                });
             
             this.WhenAnyValue(x => x.SelectedPlatform)
-                .Subscribe(platform => LoadModules(platform));
+                .Subscribe(platform =>
+                {
+                    HasSelectedPlatform = platform != null;
+                    LoadModules(platform);
+                });
             
             this.WhenAnyValue(x => x.SelectedModule)
                 .Subscribe(module => LoadData(module));
