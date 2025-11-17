@@ -20,7 +20,7 @@ namespace LabTestPlatform.Data.Repositories
             return connection.Query<SystemEntity>("SELECT * FROM Systems");
         }
 
-        public SystemEntity GetById(string id)
+        public SystemEntity? GetById(string id)
         {
             using var connection = _connectionFactory.CreateConnection();
             return connection.QuerySingleOrDefault<SystemEntity>("SELECT * FROM Systems WHERE Id = @Id", new { Id = id });

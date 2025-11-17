@@ -20,7 +20,7 @@ namespace LabTestPlatform.Data.Repositories
             return connection.Query<ModuleEntity>("SELECT * FROM Modules WHERE PlatformId = @PlatformId", new { PlatformId = platformId });
         }
 
-        public ModuleEntity GetById(string id)
+        public ModuleEntity? GetById(string id)
         {
             using var connection = _connectionFactory.CreateConnection();
             return connection.QuerySingleOrDefault<ModuleEntity>("SELECT * FROM Modules WHERE Id = @Id", new { Id = id });
