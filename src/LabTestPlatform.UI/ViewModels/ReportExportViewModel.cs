@@ -9,7 +9,8 @@ using System.Reactive;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
-using System.Reactive.Linq; // 确保此 using 存在
+using System.Reactive.Linq;
+using System.Diagnostics;
 
 namespace LabTestPlatform.UI.ViewModels
 {
@@ -17,8 +18,8 @@ namespace LabTestPlatform.UI.ViewModels
     public class ExportHistoryItem
     {
         public string FileName { get; set; } = string.Empty;
-        public string ExportDate { get; set; } = string.Empty;
-        public string FileSize { get; set; } = string.Empty;
+        public DateTime ExportTime { get; set; }
+        public string FilePath { get; set; } = string.Empty;
     }
 
     public class ReportExportViewModel : ViewModelBase
@@ -26,6 +27,7 @@ namespace LabTestPlatform.UI.ViewModels
         private readonly IReportService _reportService;
         private readonly ISystemService _systemService;
 
+        // 系统、平台、模组数据
         private ObservableCollection<SystemModel> _systems;
         public ObservableCollection<SystemModel> Systems
         {
@@ -37,7 +39,11 @@ namespace LabTestPlatform.UI.ViewModels
         public SystemModel? SelectedSystem
         {
             get => _selectedSystem;
-            set => this.RaiseAndSetIfChanged(ref _selectedSystem, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedSystem, value);
+                this.RaisePropertyChanged(nameof(HasSelectedSystem));
+            }
         }
 
         private ObservableCollection<PlatformModel> _platforms;
@@ -51,7 +57,11 @@ namespace LabTestPlatform.UI.ViewModels
         public PlatformModel? SelectedPlatform
         {
             get => _selectedPlatform;
-            set => this.RaiseAndSetIfChanged(ref _selectedPlatform, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedPlatform, value);
+                this.RaisePropertyChanged(nameof(HasSelectedPlatform));
+            }
         }
 
         private ObservableCollection<ModuleModel> _modules;
@@ -68,13 +78,132 @@ namespace LabTestPlatform.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedModule, value);
         }
 
-        private string? _selectedFormat = "Excel"; // 默认格式
-        public string? SelectedFormat
+        // 报表类型
+        private bool _isWeibullReport = true;
+        public bool IsWeibullReport
         {
-            get => _selectedFormat;
-            set => this.RaiseAndSetIfChanged(ref _selectedFormat, value);
+            get => _isWeibullReport;
+            set => this.RaiseAndSetIfChanged(ref _isWeibullReport, value);
         }
 
+        private bool _isSystemReport;
+        public bool IsSystemReport
+        {
+            get => _isSystemReport;
+            set => this.RaiseAndSetIfChanged(ref _isSystemReport, value);
+        }
+
+        private bool _isDataSummaryReport;
+        public bool IsDataSummaryReport
+        {
+            get => _isDataSummaryReport;
+            set => this.RaiseAndSetIfChanged(ref _isDataSummaryReport, value);
+        }
+
+        private bool _isCustomReport;
+        public bool IsCustomReport
+        {
+            get => _isCustomReport;
+            set => this.RaiseAndSetIfChanged(ref _isCustomReport, value);
+        }
+
+        // 数据范围
+        private DateTime? _startDate;
+        public DateTime? StartDate
+        {
+            get => _startDate;
+            set => this.RaiseAndSetIfChanged(ref _startDate, value);
+        }
+
+        private DateTime? _endDate;
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set => this.RaiseAndSetIfChanged(ref _endDate, value);
+        }
+
+        // 报表选项
+        private bool _includeDetailData = true;
+        public bool IncludeDetailData
+        {
+            get => _includeDetailData;
+            set => this.RaiseAndSetIfChanged(ref _includeDetailData, value);
+        }
+
+        private bool _includeCharts = true;
+        public bool IncludeCharts
+        {
+            get => _includeCharts;
+            set => this.RaiseAndSetIfChanged(ref _includeCharts, value);
+        }
+
+        private bool _includeStatistics = true;
+        public bool IncludeStatistics
+        {
+            get => _includeStatistics;
+            set => this.RaiseAndSetIfChanged(ref _includeStatistics, value);
+        }
+
+        // 输出格式
+        private bool _isExcelFormat = true;
+        public bool IsExcelFormat
+        {
+            get => _isExcelFormat;
+            set => this.RaiseAndSetIfChanged(ref _isExcelFormat, value);
+        }
+
+        private bool _isPdfFormat;
+        public bool IsPdfFormat
+        {
+            get => _isPdfFormat;
+            set => this.RaiseAndSetIfChanged(ref _isPdfFormat, value);
+        }
+
+        private bool _isWordFormat;
+        public bool IsWordFormat
+        {
+            get => _isWordFormat;
+            set => this.RaiseAndSetIfChanged(ref _isWordFormat, value);
+        }
+
+        // 保存路径
+        private string _savePath = string.Empty;
+        public string SavePath
+        {
+            get => _savePath;
+            set => this.RaiseAndSetIfChanged(ref _savePath, value);
+        }
+
+        private string _fileName = string.Empty;
+        public string FileName
+        {
+            get => _fileName;
+            set => this.RaiseAndSetIfChanged(ref _fileName, value);
+        }
+
+        // 导出进度
+        private bool _isExporting;
+        public bool IsExporting
+        {
+            get => _isExporting;
+            set => this.RaiseAndSetIfChanged(ref _isExporting, value);
+        }
+
+        private double _exportProgress;
+        public double ExportProgress
+        {
+            get => _exportProgress;
+            set => this.RaiseAndSetIfChanged(ref _exportProgress, value);
+        }
+
+        private string _progressMessage = string.Empty;
+        public string ProgressMessage
+        {
+            get => _progressMessage;
+            set => this.RaiseAndSetIfChanged(ref _progressMessage, value);
+        }
+
+        // 导出历史
         private ObservableCollection<ExportHistoryItem> _exportHistory;
         public ObservableCollection<ExportHistoryItem> ExportHistory
         {
@@ -82,9 +211,21 @@ namespace LabTestPlatform.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _exportHistory, value);
         }
 
-        public Interaction<Unit, IStorageFile?> ShowSaveFileDialog { get; }
+        // 计算属性
+        public bool HasSelectedSystem => SelectedSystem != null;
+        public bool HasSelectedPlatform => SelectedPlatform != null;
+        public bool CanPreview => !string.IsNullOrEmpty(FileName);
+        public bool CanExport => !string.IsNullOrEmpty(SavePath) && !string.IsNullOrEmpty(FileName) && !IsExporting;
 
-        public ReactiveCommand<Unit, Unit> GenerateReportCommand { get; }
+        // 交互
+        public Interaction<Unit, IStorageFolder?> ShowFolderDialog { get; }
+
+        // 命令
+        public ReactiveCommand<Unit, Unit> BrowsePathCommand { get; }
+        public ReactiveCommand<Unit, Unit> PreviewCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExportCommand { get; }
+        public ReactiveCommand<Unit, Unit> ResetCommand { get; }
+        public ReactiveCommand<string, Unit> OpenFileCommand { get; }
 
         public ReportExportViewModel(IServiceProvider services)
         {
@@ -96,24 +237,56 @@ namespace LabTestPlatform.UI.ViewModels
             _modules = new ObservableCollection<ModuleModel>();
             _exportHistory = new ObservableCollection<ExportHistoryItem>();
 
-            ShowSaveFileDialog = new Interaction<Unit, IStorageFile?>();
+            ShowFolderDialog = new Interaction<Unit, IStorageFolder?>();
 
-            GenerateReportCommand = ReactiveCommand.CreateFromTask(GenerateReport);
+            // 初始化命令
+            BrowsePathCommand = ReactiveCommand.CreateFromTask(BrowsePath);
+            PreviewCommand = ReactiveCommand.CreateFromTask(PreviewReport);
+            ExportCommand = ReactiveCommand.CreateFromTask(ExportReport);
+            ResetCommand = ReactiveCommand.Create(Reset);
+            OpenFileCommand = ReactiveCommand.Create<string>(OpenFile);
 
+            // 监听属性变化
             this.WhenAnyValue(x => x.SelectedSystem)
                 .Subscribe(system => LoadPlatforms(system));
+            
             this.WhenAnyValue(x => x.SelectedPlatform)
                 .Subscribe(platform => LoadModules(platform));
 
+            this.WhenAnyValue(
+                x => x.SavePath,
+                x => x.FileName,
+                x => x.IsExporting)
+                .Subscribe(_ =>
+                {
+                    this.RaisePropertyChanged(nameof(CanPreview));
+                    this.RaisePropertyChanged(nameof(CanExport));
+                });
+
             LoadSystems();
+            InitializeDefaults();
+        }
+
+        private void InitializeDefaults()
+        {
+            StartDate = DateTime.Now.AddMonths(-1);
+            EndDate = DateTime.Now;
+            FileName = $"Report_{DateTime.Now:yyyyMMdd_HHmmss}";
         }
 
         private void LoadSystems()
         {
-            var systems = _systemService.GetAllSystems();
-            Systems = new ObservableCollection<SystemModel>(systems);
-            Platforms.Clear();
-            Modules.Clear();
+            try
+            {
+                var systems = _systemService.GetAllSystems();
+                Systems = new ObservableCollection<SystemModel>(systems);
+                Platforms.Clear();
+                Modules.Clear();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading systems: {ex.Message}");
+            }
         }
 
         private void LoadPlatforms(SystemModel? system)
@@ -122,8 +295,15 @@ namespace LabTestPlatform.UI.ViewModels
             Modules.Clear();
             if (system != null)
             {
-                var platforms = _systemService.GetPlatformsBySystemId(system.Id);
-                Platforms = new ObservableCollection<PlatformModel>(platforms);
+                try
+                {
+                    var platforms = _systemService.GetPlatformsBySystemId(system.Id);
+                    Platforms = new ObservableCollection<PlatformModel>(platforms);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading platforms: {ex.Message}");
+                }
             }
         }
 
@@ -132,49 +312,181 @@ namespace LabTestPlatform.UI.ViewModels
             Modules.Clear();
             if (platform != null)
             {
-                var modules = _systemService.GetModulesByPlatformId(platform.Id);
-                Modules = new ObservableCollection<ModuleModel>(modules);
+                try
+                {
+                    var modules = _systemService.GetModulesByPlatformId(platform.Id);
+                    Modules = new ObservableCollection<ModuleModel>(modules);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading modules: {ex.Message}");
+                }
             }
         }
 
-        private async Task GenerateReport()
+        private async Task BrowsePath()
         {
-            var file = await ShowSaveFileDialog.Handle(Unit.Default).FirstAsync();
-            if (file == null) return;
+            var folder = await ShowFolderDialog.Handle(Unit.Default).FirstAsync();
+            if (folder != null)
+            {
+                SavePath = folder.Path.LocalPath;
+            }
+        }
+
+        private async Task PreviewReport()
+        {
+            try
+            {
+                ProgressMessage = "正在生成预览...";
+                IsExporting = true;
+                ExportProgress = 0;
+
+                await Task.Delay(500); // 模拟预览生成
+                ExportProgress = 50;
+                
+                // TODO: 实现实际的预览功能
+                
+                ExportProgress = 100;
+                ProgressMessage = "预览生成完成";
+                
+                await Task.Delay(1000);
+                IsExporting = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error previewing report: {ex.Message}");
+                IsExporting = false;
+            }
+        }
+
+        private async Task ExportReport()
+        {
+            if (string.IsNullOrEmpty(SavePath) || string.IsNullOrEmpty(FileName))
+            {
+                return;
+            }
 
             try
             {
-                string reportType = "FullReport"; // 示例类型
+                IsExporting = true;
+                ExportProgress = 0;
+                ProgressMessage = "开始导出报表...";
+
+                // 确定报表类型
+                string reportType = "FullReport";
+                if (IsWeibullReport) reportType = "WeibullReport";
+                else if (IsSystemReport) reportType = "SystemReport";
+                else if (IsDataSummaryReport) reportType = "DataSummaryReport";
+                else if (IsCustomReport) reportType = "CustomReport";
+
+                // 确定实体ID
                 string? entityId = _selectedModule?.Id ?? _selectedPlatform?.Id ?? _selectedSystem?.Id;
-                
-                if (entityId == null || _selectedFormat == null)
+                if (entityId == null)
                 {
-                    // 修正：删除了我上次留下的 'Services' 拼写错误
-                    return; 
+                    ProgressMessage = "请选择要导出的系统、平台或模组";
+                    await Task.Delay(2000);
+                    IsExporting = false;
+                    return;
                 }
 
-                // 这是您仓库中的正确名称
-                await _reportService.GenerateReportAsync(reportType, entityId, file.Path.LocalPath, _selectedFormat);
-                
-                // Add to export history
-                var fileName = System.IO.Path.GetFileName(file.Path.LocalPath);
+                // 确定文件格式
+                string format = "Excel";
+                string extension = ".xlsx";
+                if (IsPdfFormat)
+                {
+                    format = "PDF";
+                    extension = ".pdf";
+                }
+                else if (IsWordFormat)
+                {
+                    format = "Word";
+                    extension = ".docx";
+                }
+
+                // 构建完整文件路径
+                string fullFileName = FileName.EndsWith(extension) ? FileName : FileName + extension;
+                string fullPath = System.IO.Path.Combine(SavePath, fullFileName);
+
+                ExportProgress = 20;
+                ProgressMessage = "正在收集数据...";
+
+                await Task.Delay(500);
+                ExportProgress = 40;
+                ProgressMessage = "正在生成报表...";
+
+                // 生成报表
+                await _reportService.GenerateReportAsync(reportType, entityId, fullPath, format);
+
+                ExportProgress = 80;
+                ProgressMessage = "正在保存文件...";
+
+                await Task.Delay(500);
+                ExportProgress = 100;
+                ProgressMessage = "报表导出完成！";
+
+                // 添加到导出历史
                 ExportHistory.Insert(0, new ExportHistoryItem
                 {
-                    FileName = fileName,
-                    ExportDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                    FileSize = "N/A" // Could calculate actual size if needed
+                    FileName = fullFileName,
+                    ExportTime = DateTime.Now,
+                    FilePath = fullPath
                 });
-                
-                // Keep only the last 10 items
+
+                // 保持最多10条历史记录
                 while (ExportHistory.Count > 10)
                 {
                     ExportHistory.RemoveAt(ExportHistory.Count - 1);
                 }
-                
+
+                await Task.Delay(1500);
+                IsExporting = false;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ProgressMessage = $"导出失败: {ex.Message}";
+                Console.WriteLine($"Error exporting report: {ex.Message}");
+                await Task.Delay(3000);
+                IsExporting = false;
+            }
+        }
+
+        private void Reset()
+        {
+            SelectedSystem = null;
+            SelectedPlatform = null;
+            SelectedModule = null;
+            IsWeibullReport = true;
+            IsSystemReport = false;
+            IsDataSummaryReport = false;
+            IsCustomReport = false;
+            StartDate = DateTime.Now.AddMonths(-1);
+            EndDate = DateTime.Now;
+            IncludeDetailData = true;
+            IncludeCharts = true;
+            IncludeStatistics = true;
+            IsExcelFormat = true;
+            IsPdfFormat = false;
+            IsWordFormat = false;
+            SavePath = string.Empty;
+            FileName = $"Report_{DateTime.Now:yyyyMMdd_HHmmss}";
+        }
+
+        private void OpenFile(string filePath)
+        {
+            try
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error opening file: {ex.Message}");
             }
         }
     }
