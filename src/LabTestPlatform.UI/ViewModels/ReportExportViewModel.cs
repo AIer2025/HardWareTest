@@ -144,6 +144,27 @@ namespace LabTestPlatform.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _includeStatistics, value);
         }
 
+        private bool _includeConfidenceInterval = true;
+        public bool IncludeConfidenceInterval
+        {
+            get => _includeConfidenceInterval;
+            set => this.RaiseAndSetIfChanged(ref _includeConfidenceInterval, value);
+        }
+
+        private bool _addCoverPage = true;
+        public bool AddCoverPage
+        {
+            get => _addCoverPage;
+            set => this.RaiseAndSetIfChanged(ref _addCoverPage, value);
+        }
+
+        private bool _addTableOfContents = true;
+        public bool AddTableOfContents
+        {
+            get => _addTableOfContents;
+            set => this.RaiseAndSetIfChanged(ref _addTableOfContents, value);
+        }
+
         // 输出格式
         private bool _isExcelFormat = true;
         public bool IsExcelFormat
@@ -464,6 +485,9 @@ namespace LabTestPlatform.UI.ViewModels
             IncludeDetailData = true;
             IncludeCharts = true;
             IncludeStatistics = true;
+            IncludeConfidenceInterval = true;
+            AddCoverPage = true;
+            AddTableOfContents = true;
             IsExcelFormat = true;
             IsPdfFormat = false;
             IsWordFormat = false;
