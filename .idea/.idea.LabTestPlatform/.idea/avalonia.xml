@@ -7,6 +7,7 @@
         <entry key="src/LabTestPlatform.UI/Views/MainWindow.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
         <entry key="src/LabTestPlatform.UI/Views/ReportExportView.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
         <entry key="src/LabTestPlatform.UI/Views/SystemManagementView.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
+        <entry key="src/LabTestPlatform.UI/Views/WeibullAnalysisView.axaml" value="src/LabTestPlatform.UI/LabTestPlatform.UI.csproj" />
       </map>
     </option>
   </component>
