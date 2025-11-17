@@ -112,9 +112,10 @@
                         Padding="20"
                         Margin="0,0,10,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="15" IsVisible="{Binding HasResult}">
-                            
-                            <TextBlock Text="分析结果" 
+                        <Grid>
+                            <StackPanel Spacing="15" IsVisible="{Binding HasResult}">
+                                
+                                <TextBlock Text="分析结果" 
                                        FontWeight="Bold" 
                                        FontSize="18"
                                        Margin="0,0,0,10"/>
@@ -266,22 +267,23 @@
                                         Foreground="White"
                                         CornerRadius="3"/>
                             </StackPanel>
-                        </StackPanel>
+                            </StackPanel>
 
-                        <!-- 无结果提示 -->
-                        <StackPanel IsVisible="{Binding !HasResult}"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Center"
-                                    Spacing="10">
-                            <TextBlock Text="📊" 
-                                       FontSize="48"
-                                       HorizontalAlignment="Center"
-                                       Foreground="#BDC3C7"/>
-                            <TextBlock Text="请选择模组并点击分析按钮" 
-                                       FontSize="14"
-                                       Foreground="#7F8C8D"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
+                            <!-- 无结果提示 -->
+                            <StackPanel IsVisible="{Binding !HasResult}"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Spacing="10">
+                                <TextBlock Text="📊" 
+                                           FontSize="48"
+                                           HorizontalAlignment="Center"
+                                           Foreground="#BDC3C7"/>
+                                <TextBlock Text="请选择模组并点击分析按钮" 
+                                           FontSize="14"
+                                           Foreground="#7F8C8D"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
                     </ScrollViewer>
                 </Border>
 
