@@ -1,4 +1,4 @@
-using LabTestPlatform.UI.Utilities;  // ← 必须有这行
+using LabTestPlatform.UI.Utilities;
 using LabTestPlatform.Core.Models;
 using LabTestPlatform.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +18,7 @@ namespace LabTestPlatform.UI.ViewModels
         private readonly IWeibullAnalysisService _analysisService;
         private readonly ISystemService _systemService;
 
-        // ... 所有属性定义保持不变 ...
+        // ... 保持所有属性定义不变 ...
         private ObservableCollection<SystemModel> _systems;
         public ObservableCollection<SystemModel> Systems
         {
@@ -574,8 +574,10 @@ namespace LabTestPlatform.UI.ViewModels
             }
         }
 
-    // 替换 WeibullAnalysisViewModel.cs 中的 PlotWeibullChart 方法
-
+    // ==========================================================
+    // 修正后的 PlotWeibullChart 方法 (终极兼容修复版)
+    // 完美适配 ScottPlot 5.0.15 的 Label 和 LabelExperimental 差异
+    // ==========================================================
         private void PlotWeibullChart(double[] failures)
         {
             // 确保在UI线程上执行绘图操作
@@ -595,9 +597,32 @@ namespace LabTestPlatform.UI.ViewModels
                     
                     AvaPlot.Plot.Clear();
                     
-                    // 注意: ScottPlot 5.0 的字体设置API与4.x版本不同
-                    // 暂时移除字体设置，图表仍可正常显示（使用默认字体）
-                    SimpleLogger.Info("使用默认字体设置");
+                    // ==========================================================
+                    // 【核心修正】混合使用 Font.Name 和 FontName 以适配不同类型的 Label 对象
+                    // ==========================================================
+                    string chineseFont = "Microsoft YaHei"; // 微软雅黑
+                    
+                    // 0. 安全起见，设置全局默认字体
+                    ScottPlot.Fonts.Default = chineseFont;
+
+                    // 1. 标题设置
+                    // Title 是标准 Label 类型，使用 Font.Name
+                    AvaPlot.Plot.Axes.Title.Label.Text = $"威布尔概率图 (β: {Beta:F2}, η: {Eta:F2})";
+                    AvaPlot.Plot.Axes.Title.Label.Font.Name = chineseFont;
+                    
+                    // 2. X轴和Y轴设置
+                    // Axes.Bottom.Label 是 LabelExperimental 类型，使用 FontName
+                    AvaPlot.Plot.Axes.Bottom.Label.Text = "ln(时间)";
+                    AvaPlot.Plot.Axes.Bottom.Label.FontName = chineseFont;
+
+                    AvaPlot.Plot.Axes.Left.Label.Text = "ln(-ln(1-F(t)))";
+                    AvaPlot.Plot.Axes.Left.Label.FontName = chineseFont;
+                    
+                    // 3. 图例设置
+                    // Legend 是标准类型，使用 Font.Name
+                    AvaPlot.Plot.Legend.Font.Name = chineseFont;
+
+                    SimpleLogger.Info("✓ 已设置所有图表元素字体为 Microsoft YaHei");
                     
                     if (failures.Length > 0)
                     {
@@ -614,7 +639,7 @@ namespace LabTestPlatform.UI.ViewModels
 
                         // 添加散点
                         var scatter = AvaPlot.Plot.Add.Scatter(xData, yData);
-                        scatter.Label = "实测数据点";
+                        scatter.Label = "实测数据点"; // 中文标签
                         scatter.MarkerSize = 8;
                         scatter.Color = ScottPlot.Color.FromHex("#2196F3");
 
@@ -623,22 +648,13 @@ namespace LabTestPlatform.UI.ViewModels
                         double[] fitY = { (fitX[0] - Math.Log(Eta)) * Beta, (fitX[1] - Math.Log(Eta)) * Beta };
                         
                         var line = AvaPlot.Plot.Add.Scatter(fitX, fitY);
-                        line.Label = "威布尔拟合线";
+                        line.Label = "威布尔拟合线"; // 中文标签
                         line.LineWidth = 2;
                         line.Color = ScottPlot.Color.FromHex("#FF0000");
                         line.MarkerSize = 0;
 
                         SimpleLogger.Info("✓ 数据点和拟合线已添加");
                     }
-
-                    // 设置图表标题和标签
-                    //AvaPlot.Plot.Title($"威布尔概率图 (β: {Beta:F2}, η: {Eta:F2})");
-                    //AvaPlot.Plot.XLabel("ln(时间)");
-                    
-                    //Stone Edit
-                    AvaPlot.Plot.Title($"Weibull probability plot (β: {Beta:F2}, η: {Eta:F2})");
-                    AvaPlot.Plot.XLabel("ln(Time)");
-                    AvaPlot.Plot.YLabel("ln(-ln(1-F(t)))");
                     
                     // 显示图例
                     AvaPlot.Plot.ShowLegend();
