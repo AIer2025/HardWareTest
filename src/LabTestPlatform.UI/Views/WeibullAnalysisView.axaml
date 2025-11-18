@@ -294,19 +294,28 @@
                         BorderThickness="1" 
                         CornerRadius="5"
                         Padding="20">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top"
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0"
                                    Text="威布尔概率图" 
                                    FontWeight="Bold" 
                                    FontSize="16"
                                    Margin="0,0,0,10"/>
 
                         <!-- ScottPlot 图表 -->
-                        <scottplot:AvaPlot x:Name="WeibullPlot" 
-                                           IsVisible="{Binding HasResult}"/>
+                        <scottplot:AvaPlot Grid.Row="1"
+                                           x:Name="WeibullPlot" 
+                                           IsVisible="{Binding HasResult}"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"/>
 
                         <!-- 无图表提示 -->
-                        <StackPanel IsVisible="{Binding !HasResult}"
+                        <StackPanel Grid.Row="1"
+                                    IsVisible="{Binding !HasResult}"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Center"
                                     Spacing="10">
@@ -319,7 +328,7 @@
                                        Foreground="#7F8C8D"
                                        HorizontalAlignment="Center"/>
                         </StackPanel>
-                    </DockPanel>
+                    </Grid>
                 </Border>
             </Grid>
         </Grid>

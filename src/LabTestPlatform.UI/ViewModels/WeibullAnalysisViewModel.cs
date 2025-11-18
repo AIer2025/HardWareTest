@@ -218,7 +218,17 @@ namespace LabTestPlatform.UI.ViewModels
         public ReactiveCommand<Unit, Unit> AnalyzeCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveResultCommand { get; }
         public ReactiveCommand<Unit, Unit> ExportReportCommand { get; }
-        public AvaPlot AvaPlot { get; set; } = new AvaPlot();
+        //public AvaPlot AvaPlot { get; set; } = new AvaPlot();
+        private AvaPlot? _avaPlot;
+        public AvaPlot? AvaPlot 
+        { 
+            get => _avaPlot;
+            set
+            {
+                _avaPlot = value;
+                Console.WriteLine($"AvaPlot设置: {value != null}");
+            }
+        }
 
         public WeibullAnalysisViewModel(IServiceProvider services)
         {
@@ -564,50 +574,122 @@ namespace LabTestPlatform.UI.ViewModels
             }
         }
 
+    // 替换 WeibullAnalysisViewModel.cs 中的 PlotWeibullChart 方法
+// 位置：约567-610行
+
         private void PlotWeibullChart(double[] failures)
         {
-            try
+            // 确保在UI线程上执行绘图操作
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                SimpleLogger.Info("清空图表并开始绘制...");
-                AvaPlot.Plot.Clear();
-                
-                if (failures.Length > 0)
+                try
                 {
-                    double[] failureTimes = failures.OrderBy(t => t).ToArray();
-                    double[] failureProbabilities = _analysisService.GetFailureProbabilities(failureTimes.Length);
-
-                    SimpleLogger.Info($"绘制 {failureTimes.Length} 个数据点");
-
-                    double[] xData = failureTimes.Select(t => Math.Log(t)).ToArray();
-                    double[] yData = failureProbabilities.Select(p => Math.Log(-Math.Log(1 - p))).ToArray();
-
-                    var scatter = AvaPlot.Plot.Add.Scatter(xData, yData);
-                    scatter.Label = "实测数据点";
-                    scatter.MarkerSize = 8;
-
-                    double[] fitX = { xData.First(), xData.Last() };
-                    double[] fitY = { (fitX[0] - Math.Log(Eta)) * Beta, (fitX[1] - Math.Log(Eta)) * Beta };
+                    SimpleLogger.Info("清空图表并开始绘制...");
                     
-                    var line = AvaPlot.Plot.Add.Scatter(fitX, fitY);
-                    line.Label = "威布尔拟合线";
-                    line.LineStyle.Width = 2;
-                    line.LineStyle.Color = Color.FromHex("#FF0000");
-                    line.MarkerSize = 0;
+                    if (AvaPlot == null)
+                    {
+                        SimpleLogger.Error("❌ AvaPlot为null，无法绘制图表！");
+                        return;
+                    }
+                    
+                    SimpleLogger.Info($"AvaPlot状态: IsVisible={AvaPlot.IsVisible}, Width={AvaPlot.Bounds.Width}, Height={AvaPlot.Bounds.Height}");
+                    
+                    AvaPlot.Plot.Clear();
+                    
+                    // 🔧 设置中文字体
+                    try
+                    {
+                        // 方法1：尝试使用系统中文字体
+                        var fonts = new[] { 
+                            "Microsoft YaHei",      // 微软雅黑
+                            "SimHei",               // 黑体
+                            "SimSun",               // 宋体
+                            "KaiTi",                // 楷体
+                            "Arial Unicode MS",     // 备用
+                            "Segoe UI",             // 英文备用
+                        };
+                        
+                        foreach (var fontName in fonts)
+                        {
+                            try
+                            {
+                                AvaPlot.Plot.Font.Set(fontName);
+                                SimpleLogger.Info($"✓ 字体设置为: {fontName}");
+                                break;
+                            }
+                            catch (Exception fontEx)
+                            {
+                                SimpleLogger.Debug($"字体 {fontName} 不可用: {fontEx.Message}");
+                            }
+                        }
+                        
+                        // 设置字体大小
+                        AvaPlot.Plot.Font.Size = 12;
+                        AvaPlot.Plot.Axes.Title.Label.FontSize = 14;
+                    }
+                    catch (Exception fontEx)
+                    {
+                        SimpleLogger.Warning($"字体设置失败: {fontEx.Message}");
+                    }
+                    
+                    if (failures.Length > 0)
+                    {
+                        double[] failureTimes = failures.OrderBy(t => t).ToArray();
+                        double[] failureProbabilities = _analysisService.GetFailureProbabilities(failureTimes.Length);
 
-                    SimpleLogger.Info("✓ 图表绘制完成");
+                        SimpleLogger.Info($"绘制 {failureTimes.Length} 个数据点");
+
+                        double[] xData = failureTimes.Select(t => Math.Log(t)).ToArray();
+                        double[] yData = failureProbabilities.Select(p => Math.Log(-Math.Log(1 - p))).ToArray();
+
+                        SimpleLogger.Debug($"X范围: {xData.Min():F2} 到 {xData.Max():F2}");
+                        SimpleLogger.Debug($"Y范围: {yData.Min():F2} 到 {yData.Max():F2}");
+
+                        // 添加散点
+                        var scatter = AvaPlot.Plot.Add.Scatter(xData, yData);
+                        scatter.Label = "实测数据点";
+                        scatter.MarkerSize = 8;
+                        scatter.Color = ScottPlot.Color.FromHex("#2196F3");
+
+                        // 添加拟合线
+                        double[] fitX = { xData.First(), xData.Last() };
+                        double[] fitY = { (fitX[0] - Math.Log(Eta)) * Beta, (fitX[1] - Math.Log(Eta)) * Beta };
+                        
+                        var line = AvaPlot.Plot.Add.Scatter(fitX, fitY);
+                        line.Label = "威布尔拟合线";
+                        line.LineWidth = 2;
+                        line.Color = ScottPlot.Color.FromHex("#FF0000");
+                        line.MarkerSize = 0;
+
+                        SimpleLogger.Info("✓ 数据点和拟合线已添加");
+                    }
+
+                    // 设置图表标题和标签
+                    AvaPlot.Plot.Title($"威布尔概率图 (β: {Beta:F2}, η: {Eta:F2})");
+                    AvaPlot.Plot.XLabel("ln(时间)");
+                    AvaPlot.Plot.YLabel("ln(-ln(1-F(t)))");
+                    
+                    // 显示图例
+                    AvaPlot.Plot.ShowLegend();
+                    
+                    // 自动缩放坐标轴
+                    AvaPlot.Plot.Axes.AutoScale();
+                    
+                    // 刷新显示
+                    AvaPlot.Refresh();
+                    
+                    SimpleLogger.Info("✓ 图表绘制并刷新完成");
                 }
-
-                AvaPlot.Plot.Title($"威布尔概率图 (β: {Beta:F2}, η: {Eta:F2})");
-                AvaPlot.Plot.XLabel("ln(时间)");
-                AvaPlot.Plot.YLabel("ln(-ln(1-F(t)))");
-                AvaPlot.Plot.Legend.IsVisible = true;
-                AvaPlot.Refresh();
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Error("绘制威布尔图表时发生错误", ex);
-            }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Error("绘制威布尔图表时发生错误", ex);
+                    SimpleLogger.Error($"异常详情: {ex.Message}");
+                    SimpleLogger.Error($"堆栈跟踪: {ex.StackTrace}");
+                }
+            });
         }
+        
+        
 
         private double GammaFunction(double z)
         {
