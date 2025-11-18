@@ -79,7 +79,10 @@ namespace LabTestPlatform.UI.Utilities
                     }
 
                     // 写入文件
-                    File.AppendAllText(_logFilePath, logEntry.ToString(), Encoding.UTF8);
+                    if (_logFilePath != null)
+                    {
+                        File.AppendAllText(_logFilePath, logEntry.ToString(), Encoding.UTF8);
+                    }
 
                     // 同时输出到控制台（便于调试）
                     Console.Write(logEntry.ToString());
