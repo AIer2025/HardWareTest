@@ -596,10 +596,10 @@ namespace LabTestPlatform.UI.ViewModels
                     
                     AvaPlot.Plot.Clear();
                     
-                    // 🔧 设置中文字体
+                    // 🔧 设置中文字体 (ScottPlot 5.0 API)
                     try
                     {
-                        // 方法1：尝试使用系统中文字体
+                        // ScottPlot 5.0 使用 Fonts 静态类来设置字体
                         var fonts = new[] { 
                             "Microsoft YaHei",      // 微软雅黑
                             "SimHei",               // 黑体
@@ -609,12 +609,14 @@ namespace LabTestPlatform.UI.ViewModels
                             "Segoe UI",             // 英文备用
                         };
                         
+                        string selectedFont = fonts[0]; // 默认使用第一个字体
                         foreach (var fontName in fonts)
                         {
                             try
                             {
-                                AvaPlot.Plot.Font.Set(fontName);
-                                SimpleLogger.Info($"✓ 字体设置为: {fontName}");
+                                // 在 ScottPlot 5.0 中，只需设置字体名称，不需要调用 Set 方法
+                                selectedFont = fontName;
+                                SimpleLogger.Info($"✓ 选择字体: {fontName}");
                                 break;
                             }
                             catch (Exception fontEx)
@@ -623,9 +625,17 @@ namespace LabTestPlatform.UI.ViewModels
                             }
                         }
                         
-                        // 设置字体大小
-                        AvaPlot.Plot.Font.Size = 12;
+                        // ScottPlot 5.0: 设置标题字体
+                        AvaPlot.Plot.Axes.Title.Label.FontName = selectedFont;
                         AvaPlot.Plot.Axes.Title.Label.FontSize = 14;
+                        
+                        // 设置轴标签字体
+                        AvaPlot.Plot.Axes.Bottom.Label.FontName = selectedFont;
+                        AvaPlot.Plot.Axes.Bottom.Label.FontSize = 12;
+                        AvaPlot.Plot.Axes.Left.Label.FontName = selectedFont;
+                        AvaPlot.Plot.Axes.Left.Label.FontSize = 12;
+                        
+                        SimpleLogger.Info($"✓ 字体设置完成: {selectedFont}");
                     }
                     catch (Exception fontEx)
                     {

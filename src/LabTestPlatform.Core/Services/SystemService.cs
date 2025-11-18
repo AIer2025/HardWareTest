@@ -36,7 +36,7 @@ namespace LabTestPlatform.Core.Services
             });
         }
 
-        public SystemModel GetSystemById(string id)
+        public SystemModel? GetSystemById(string id)
         {
             var entity = _systemRepository.GetById(id);
             if (entity == null)
@@ -91,7 +91,7 @@ namespace LabTestPlatform.Core.Services
             });
         }
 
-        public PlatformModel GetPlatformById(string id)
+        public PlatformModel? GetPlatformById(string id)
         {
             var entity = _platformRepository.GetById(id);
             if (entity == null)
@@ -149,7 +149,7 @@ namespace LabTestPlatform.Core.Services
             });
         }
 
-        public ModuleModel GetModuleById(string id)
+        public ModuleModel? GetModuleById(string id)
         {
             var entity = _moduleRepository.GetById(id);
             if (entity == null)

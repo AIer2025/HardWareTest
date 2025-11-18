@@ -10,7 +10,7 @@ namespace LabTestPlatform.UI.Utilities
     public static class SimpleLogger
     {
         private static readonly object _lock = new object();
-        private static string _logFilePath;
+        private static string? _logFilePath = null;
         private static bool _isInitialized = false;
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace LabTestPlatform.UI.Utilities
         /// <summary>
         /// 写入日志（内部方法）
         /// </summary>
-        private static void WriteLog(string level, string message, Exception ex = null)
+        private static void WriteLog(string level, string message, Exception? ex = null)
         {
             if (!_isInitialized)
             {
@@ -118,7 +118,7 @@ namespace LabTestPlatform.UI.Utilities
         /// <summary>
         /// 记录错误信息
         /// </summary>
-        public static void Error(string message, Exception ex = null)
+        public static void Error(string message, Exception? ex = null)
         {
             WriteLog("ERROR", message, ex);
         }
