@@ -6,40 +6,70 @@ using System.Linq;
 
 namespace LabTestPlatform.Core.Services
 {
+    /// <summary>
+    /// 系统服务 - 处理系统、平台、模组的业务逻辑
+    /// </summary>
     public class SystemService : ISystemService
     {
         private readonly ISystemRepository _systemRepository;
         private readonly IPlatformRepository _platformRepository;
         private readonly IModuleRepository _moduleRepository;
 
-        public SystemService(ISystemRepository systemRepository, IPlatformRepository platformRepository, IModuleRepository moduleRepository)
+        public SystemService(
+            ISystemRepository systemRepository, 
+            IPlatformRepository platformRepository, 
+            IModuleRepository moduleRepository)
         {
             _systemRepository = systemRepository;
             _platformRepository = platformRepository;
             _moduleRepository = moduleRepository;
         }
 
-        // System operations
-        // 修正：确保此实现存在
+        #region System Operations
+
         public IEnumerable<SystemModel> GetAllSystems()
         {
-            return _systemRepository.GetAll().Select(e => new SystemModel { Id = e.Id, Name = e.Name });
+            return _systemRepository.GetAll().Select(e => new SystemModel 
+            { 
+                Id = e.SystemId.ToString(),      // 映射 SystemId -> Id
+                Name = e.SystemName               // 映射 SystemName -> Name
+            });
         }
 
         public SystemModel GetSystemById(string id)
         {
-            var e = _systemRepository.GetById(id);
-            return new SystemModel { Id = e.Id, Name = e.Name };
+            var entity = _systemRepository.GetById(id);
+            if (entity == null)
+                return null;
+                
+            return new SystemModel 
+            { 
+                Id = entity.SystemId.ToString(), 
+                Name = entity.SystemName 
+            };
         }
 
         public void AddSystem(SystemModel system)
         {
-            _systemRepository.Add(new SystemEntity { Id = system.Id, Name = system.Name });
+            var entity = new SystemEntity
+            {
+                SystemCode = system.Id,          // 使用Id作为SystemCode
+                SystemName = system.Name,
+                IsActive = true
+            };
+            
+            _systemRepository.Add(entity);
         }
 
         public void UpdateSystem(SystemModel system)
         {
-            _systemRepository.Update(new SystemEntity { Id = system.Id, Name = system.Name });
+            // 先获取现有实体以保留其他字段
+            var existing = _systemRepository.GetById(system.Id);
+            if (existing != null)
+            {
+                existing.SystemName = system.Name;
+                _systemRepository.Update(existing);
+            }
         }
 
         public void DeleteSystem(string id)
@@ -47,27 +77,57 @@ namespace LabTestPlatform.Core.Services
             _systemRepository.Delete(id);
         }
 
-        // Platform operations
-        // 修正：确保此实现存在
+        #endregion
+
+        #region Platform Operations
+
         public IEnumerable<PlatformModel> GetPlatformsBySystemId(string systemId)
         {
-            return _platformRepository.GetBySystemId(systemId).Select(e => new PlatformModel { Id = e.Id, Name = e.Name, SystemId = e.SystemId });
+            return _platformRepository.GetBySystemId(systemId).Select(e => new PlatformModel 
+            { 
+                Id = e.PlatformId.ToString(),    // 映射 PlatformId -> Id
+                Name = e.PlatformName,            // 映射 PlatformName -> Name
+                SystemId = e.SystemId.ToString()  // 映射 SystemId (int) -> SystemId (string)
+            });
         }
 
         public PlatformModel GetPlatformById(string id)
         {
-            var e = _platformRepository.GetById(id);
-            return new PlatformModel { Id = e.Id, Name = e.Name, SystemId = e.SystemId };
+            var entity = _platformRepository.GetById(id);
+            if (entity == null)
+                return null;
+                
+            return new PlatformModel 
+            { 
+                Id = entity.PlatformId.ToString(), 
+                Name = entity.PlatformName,
+                SystemId = entity.SystemId.ToString()
+            };
         }
 
         public void AddPlatform(PlatformModel platform)
         {
-            _platformRepository.Add(new PlatformEntity { Id = platform.Id, Name = platform.Name, SystemId = platform.SystemId });
+            var entity = new PlatformEntity
+            {
+                PlatformCode = platform.Id,           // 使用Id作为PlatformCode
+                PlatformName = platform.Name,
+                SystemId = int.Parse(platform.SystemId), // 转换为int
+                IsActive = true
+            };
+            
+            _platformRepository.Add(entity);
         }
 
         public void UpdatePlatform(PlatformModel platform)
         {
-            _platformRepository.Update(new PlatformEntity { Id = platform.Id, Name = platform.Name, SystemId = platform.SystemId });
+            // 先获取现有实体以保留其他字段
+            var existing = _platformRepository.GetById(platform.Id);
+            if (existing != null)
+            {
+                existing.PlatformName = platform.Name;
+                existing.SystemId = int.Parse(platform.SystemId);
+                _platformRepository.Update(existing);
+            }
         }
 
         public void DeletePlatform(string id)
@@ -75,32 +135,64 @@ namespace LabTestPlatform.Core.Services
             _platformRepository.Delete(id);
         }
 
-        // Module operations
-        // 修正：确保此实现存在
+        #endregion
+
+        #region Module Operations
+
         public IEnumerable<ModuleModel> GetModulesByPlatformId(string platformId)
         {
-            return _moduleRepository.GetByPlatformId(platformId).Select(e => new ModuleModel { Id = e.Id, Name = e.Name, PlatformId = e.PlatformId });
+            return _moduleRepository.GetByPlatformId(platformId).Select(e => new ModuleModel 
+            { 
+                Id = e.ModuleId.ToString(),      // 映射 ModuleId -> Id
+                Name = e.ModuleName,              // 映射 ModuleName -> Name
+                PlatformId = e.PlatformId.ToString() // 映射 PlatformId (int) -> PlatformId (string)
+            });
         }
 
         public ModuleModel GetModuleById(string id)
         {
-            var e = _moduleRepository.GetById(id);
-            return new ModuleModel { Id = e.Id, Name = e.Name, PlatformId = e.PlatformId };
+            var entity = _moduleRepository.GetById(id);
+            if (entity == null)
+                return null;
+                
+            return new ModuleModel 
+            { 
+                Id = entity.ModuleId.ToString(), 
+                Name = entity.ModuleName,
+                PlatformId = entity.PlatformId.ToString()
+            };
         }
 
         public void AddModule(ModuleModel module)
         {
-            _moduleRepository.Add(new ModuleEntity { Id = module.Id, Name = module.Name, PlatformId = module.PlatformId });
+            var entity = new ModuleEntity
+            {
+                ModuleCode = module.Id,              // 使用Id作为ModuleCode
+                ModuleName = module.Name,
+                PlatformId = int.Parse(module.PlatformId), // 转换为int
+                IsActive = true
+            };
+            
+            _moduleRepository.Add(entity);
         }
 
         public void UpdateModule(ModuleModel module)
         {
-            _moduleRepository.Update(new ModuleEntity { Id = module.Id, Name = module.Name, PlatformId = module.PlatformId });
+            // 先获取现有实体以保留其他字段
+            var existing = _moduleRepository.GetById(module.Id);
+            if (existing != null)
+            {
+                existing.ModuleName = module.Name;
+                existing.PlatformId = int.Parse(module.PlatformId);
+                _moduleRepository.Update(existing);
+            }
         }
 
         public void DeleteModule(string id)
         {
             _moduleRepository.Delete(id);
         }
+
+        #endregion
     }
 }

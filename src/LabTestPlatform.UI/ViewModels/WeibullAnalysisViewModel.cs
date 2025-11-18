@@ -8,7 +8,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using ScottPlot; // 确保此 using 存在
+using System.Threading.Tasks;
+using ScottPlot;
 
 namespace LabTestPlatform.UI.ViewModels
 {
@@ -79,6 +80,13 @@ namespace LabTestPlatform.UI.ViewModels
         {
             get => _canAnalyze;
             set => this.RaiseAndSetIfChanged(ref _canAnalyze, value);
+        }
+
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => this.RaiseAndSetIfChanged(ref _isLoading, value);
         }
 
         private ObservableCollection<TestData> _testData;
@@ -220,77 +228,210 @@ namespace LabTestPlatform.UI.ViewModels
             SaveResultCommand = ReactiveCommand.Create(SaveResult);
             ExportReportCommand = ReactiveCommand.Create(ExportReport);
 
-            // 监听选择变化并更新数据
+            // 监听选择变化并更新数据 - 使用异步方法
             this.WhenAnyValue(x => x.SelectedSystem)
                 .Subscribe(system =>
                 {
                     HasSelectedSystem = system != null;
-                    LoadPlatforms(system);
+                    _ = LoadPlatformsAsync(system);
                 });
             
             this.WhenAnyValue(x => x.SelectedPlatform)
                 .Subscribe(platform =>
                 {
                     HasSelectedPlatform = platform != null;
-                    LoadModules(platform);
+                    _ = LoadModulesAsync(platform);
                 });
             
             this.WhenAnyValue(x => x.SelectedModule)
-                .Subscribe(module => LoadData(module));
+                .Subscribe(module => _ = LoadDataAsync(module));
 
-            LoadSystems();
+            // ✅ 异步加载初始数据，不阻塞UI
+            _ = LoadSystemsAsync();
         }
 
-        private void LoadSystems()
+        /// <summary>
+        /// 异步加载系统列表
+        /// </summary>
+        private async Task LoadSystemsAsync()
         {
-            var systems = _systemService.GetAllSystems();
-            Systems = new ObservableCollection<SystemModel>(systems);
-            Platforms.Clear();
-            Modules.Clear();
-            TestData.Clear();
-        }
-
-        private void LoadPlatforms(SystemModel? system)
-        {
-            Platforms.Clear();
-            Modules.Clear();
-            TestData.Clear();
-            if (system != null)
+            IsLoading = true;
+            try
             {
-                var platforms = _systemService.GetPlatformsBySystemId(system.Id);
-                Platforms = new ObservableCollection<PlatformModel>(platforms);
+                await Task.Run(() =>
+                {
+                    var systems = _systemService.GetAllSystems();
+                    
+                    // 在UI线程上更新集合
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        Systems.Clear();
+                        foreach (var system in systems)
+                        {
+                            Systems.Add(system);
+                        }
+                        
+                        Platforms.Clear();
+                        Modules.Clear();
+                        TestData.Clear();
+                    });
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading systems: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private void LoadModules(PlatformModel? platform)
+        /// <summary>
+        /// 异步加载平台列表
+        /// </summary>
+        private async Task LoadPlatformsAsync(SystemModel? system)
         {
-            Modules.Clear();
-            TestData.Clear();
-            if (platform != null)
+            IsLoading = true;
+            try
             {
-                var modules = _systemService.GetModulesByPlatformId(platform.Id);
-                Modules = new ObservableCollection<ModuleModel>(modules);
+                await Task.Run(() =>
+                {
+                    // 先清空UI
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        Platforms.Clear();
+                        Modules.Clear();
+                        TestData.Clear();
+                    });
+                    
+                    if (system != null)
+                    {
+                        var platforms = _systemService.GetPlatformsBySystemId(system.Id);
+                        
+                        // 在UI线程上更新集合
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            foreach (var platform in platforms)
+                            {
+                                Platforms.Add(platform);
+                            }
+                        });
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading platforms: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private void LoadData(ModuleModel? module)
+        /// <summary>
+        /// 异步加载模组列表
+        /// </summary>
+        private async Task LoadModulesAsync(PlatformModel? platform)
         {
-            TestData.Clear();
-            if (module != null)
+            IsLoading = true;
+            try
             {
-                var data = _analysisService.GetTestDataByModuleId(module.Id);
-                TestData = new ObservableCollection<TestData>(data);
+                await Task.Run(() =>
+                {
+                    // 先清空UI
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        Modules.Clear();
+                        TestData.Clear();
+                    });
+                    
+                    if (platform != null)
+                    {
+                        var modules = _systemService.GetModulesByPlatformId(platform.Id);
+                        
+                        // 在UI线程上更新集合
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            foreach (var module in modules)
+                            {
+                                Modules.Add(module);
+                            }
+                        });
+                    }
+                });
             }
-            // 更新CanAnalyze状态：只有当有测试数据时才能分析
-            CanAnalyze = TestData.Count > 0;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading modules: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        /// <summary>
+        /// 异步加载测试数据
+        /// </summary>
+        private async Task LoadDataAsync(ModuleModel? module)
+        {
+            IsLoading = true;
+            try
+            {
+                await Task.Run(() =>
+                {
+                    // 先清空UI
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        TestData.Clear();
+                        CanAnalyze = false;
+                    });
+                    
+                    if (module != null)
+                    {
+                        var data = _analysisService.GetTestDataByModuleId(module.Id);
+                        
+                        // 在UI线程上更新集合
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            foreach (var item in data)
+                            {
+                                TestData.Add(item);
+                            }
+                            CanAnalyze = TestData.Count > 0;
+                        });
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading test data: {ex.Message}");
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    CanAnalyze = false;
+                });
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private void Analyze()
         {
             if (TestData.Count == 0) return;
 
+            // 需要确保TestData有IsFailure和Time属性
             var failures = TestData.Where(d => d.IsFailure).Select(d => d.Time).ToArray();
             var suspensions = TestData.Where(d => !d.IsFailure).Select(d => d.Time).ToArray();
+            
+            if (failures.Length == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("No failure data available for analysis");
+                return;
+            }
             
             var (beta, eta) = _analysisService.CalculateWeibullParameters(failures, suspensions);
 
@@ -323,6 +464,12 @@ namespace LabTestPlatform.UI.ViewModels
 
             HasResult = true;
 
+            // 绘制威布尔图
+            PlotWeibullChart(failures);
+        }
+
+        private void PlotWeibullChart(double[] failures)
+        {
             AvaPlot.Plot.Clear();
             
             if (failures.Length > 0)
@@ -338,7 +485,7 @@ namespace LabTestPlatform.UI.ViewModels
 
                 // 添加拟合线
                 double[] fitX = { xData.First(), xData.Last() };
-                double[] fitY = { (fitX[0] - Math.Log(eta)) * beta, (fitX[1] - Math.Log(eta)) * beta };
+                double[] fitY = { (fitX[0] - Math.Log(Eta)) * Beta, (fitX[1] - Math.Log(Eta)) * Beta };
                 
                 var line = AvaPlot.Plot.Add.Scatter(fitX, fitY);
                 line.Label = "Weibull Fit";
@@ -347,7 +494,7 @@ namespace LabTestPlatform.UI.ViewModels
                 line.MarkerSize = 0;
             }
 
-            AvaPlot.Plot.Title($"Weibull Plot (Beta: {beta:F2}, Eta: {eta:F2})");
+            AvaPlot.Plot.Title($"Weibull Plot (Beta: {Beta:F2}, Eta: {Eta:F2})");
             AvaPlot.Plot.XLabel("ln(Time)");
             AvaPlot.Plot.YLabel("ln(-ln(1-F(t)))");
             AvaPlot.Plot.Legend.IsVisible = true;
