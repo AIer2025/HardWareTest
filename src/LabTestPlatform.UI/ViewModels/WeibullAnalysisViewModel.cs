@@ -575,7 +575,6 @@ namespace LabTestPlatform.UI.ViewModels
         }
 
     // 替换 WeibullAnalysisViewModel.cs 中的 PlotWeibullChart 方法
-// 位置：约567-610行
 
         private void PlotWeibullChart(double[] failures)
         {
@@ -633,8 +632,12 @@ namespace LabTestPlatform.UI.ViewModels
                     }
 
                     // 设置图表标题和标签
-                    AvaPlot.Plot.Title($"威布尔概率图 (β: {Beta:F2}, η: {Eta:F2})");
-                    AvaPlot.Plot.XLabel("ln(时间)");
+                    //AvaPlot.Plot.Title($"威布尔概率图 (β: {Beta:F2}, η: {Eta:F2})");
+                    //AvaPlot.Plot.XLabel("ln(时间)");
+                    
+                    //Stone Edit
+                    AvaPlot.Plot.Title($"Weibull probability plot (β: {Beta:F2}, η: {Eta:F2})");
+                    AvaPlot.Plot.XLabel("ln(Time)");
                     AvaPlot.Plot.YLabel("ln(-ln(1-F(t)))");
                     
                     // 显示图例
