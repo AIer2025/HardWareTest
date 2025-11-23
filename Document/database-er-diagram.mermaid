@@ -1,0 +1,298 @@
+erDiagram
+    %% ==========================================
+    %% 实验室硬件测试平台 - 数据库ER图
+    %% Database: syshardtestdb
+    %% Version: 3.3
+    %% ==========================================
+
+    %% 系统层级关系 (三级结构: System -> Platform -> Module)
+    TB_SYSTEM ||--o{ TB_PLATFORM : "包含"
+    TB_PLATFORM ||--o{ TB_MODULE : "包含"
+    TB_MODULE ||--o{ TB_TEST_DATA : "产生"
+    TB_MODULE ||--o{ TB_WEIBULL_ANALYSIS : "分析"
+    TB_IMPORT_BATCH ||--o{ TB_TEST_DATA : "包含"
+
+    %% 系统表 (System)
+    TB_SYSTEM {
+        int system_id PK "系统ID"
+        varchar system_code UK "系统编码(唯一)"
+        varchar system_name "系统名称"
+        text description "系统描述"
+        varchar location "位置"
+        date install_date "安装日期"
+        date warranty_date "保修日期"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+        tinyint is_active "是否启用"
+        varchar created_by "创建人"
+        varchar updated_by "更新人"
+    }
+
+    %% 平台表 (Platform)
+    TB_PLATFORM {
+        int platform_id PK "平台ID"
+        int system_id FK "系统ID"
+        varchar platform_code UK "平台编码(唯一)"
+        varchar platform_name "平台名称"
+        varchar platform_type "平台类型(TESTING/PRODUCTION/DEVELOPMENT/QUALITY)"
+        varchar serial_number "序列号"
+        text description "平台描述"
+        date install_date "安装日期"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+        tinyint is_active "是否启用"
+        varchar created_by "创建人"
+        varchar updated_by "更新人"
+    }
+
+    %% 模组表 (Module)
+    TB_MODULE {
+        int module_id PK "模组ID"
+        int platform_id FK "平台ID"
+        varchar module_code UK "模组编码(唯一)"
+        varchar module_name "模组名称"
+        varchar module_type "模组类型(POWER/SENSOR/CONTROLLER/MOTOR/DISPLAY/COMMUNICATION)"
+        varchar manufacturer "制造商"
+        varchar model_number "型号"
+        varchar serial_number "序列号"
+        date manufacture_date "生产日期"
+        int rated_life "额定寿命(小时)"
+        text description "模组描述"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+        tinyint is_active "是否启用"
+        varchar created_by "创建人"
+        varchar updated_by "更新人"
+    }
+
+    %% 测试数据表 (Test Data)
+    TB_TEST_DATA {
+        bigint test_id PK "测试ID"
+        int module_id FK "模组ID"
+        int batch_id FK "导入批次ID"
+        datetime test_time "测试时间"
+        decimal test_value "测试值"
+        varchar test_unit "测试单位"
+        varchar test_type "测试类型(LIFE_TEST/STRESS_TEST/BURN_IN/ENVIRONMENTAL)"
+        int test_cycle "测试周期数"
+        decimal failure_time "失效时间(小时)"
+        varchar failure_mode "失效模式(WEAR_OUT/FATIGUE/CORROSION/ELECTRICAL)"
+        tinyint is_censored "是否截尾数据(0完整1截尾)"
+        decimal temperature "测试温度(℃)"
+        decimal humidity "测试湿度(%)"
+        varchar operator "操作员"
+        text remarks "备注"
+        datetime create_time "创建时间"
+    }
+
+    %% 威布尔分析结果表 (Weibull Analysis)
+    TB_WEIBULL_ANALYSIS {
+        int analysis_id PK "分析ID"
+        int module_id FK "模组ID"
+        datetime analysis_time "分析时间"
+        int data_count "数据数量"
+        decimal beta "形状参数β"
+        decimal eta "尺度参数η"
+        decimal gamma "位置参数γ"
+        decimal mttf "平均故障时间"
+        decimal median_life "中位寿命"
+        decimal b10_life "B10寿命"
+        decimal b50_life "B50寿命"
+        decimal b90_life "B90寿命"
+        decimal r_squared "拟合优度R²"
+        decimal confidence_level "置信水平"
+        decimal lower_beta "β下限"
+        decimal upper_beta "β上限"
+        decimal lower_eta "η下限"
+        decimal upper_eta "η上限"
+        varchar analysis_method "分析方法(MLE/RRX/RRY)"
+        text analysis_notes "分析备注"
+        varchar analyst "分析员"
+        datetime create_time "创建时间"
+    }
+
+    %% 导入批次表 (Import Batch)
+    TB_IMPORT_BATCH {
+        int batch_id PK "批次ID"
+        varchar batch_code UK "批次编码(唯一)"
+        varchar import_type "导入类型(MANUAL/EXCEL/MODBUS)"
+        varchar file_name "文件名"
+        varchar file_path "文件路径"
+        int record_count "记录总数"
+        int success_count "成功数"
+        int fail_count "失败数"
+        varchar operator "操作员"
+        text error_message "错误信息"
+        datetime import_time "导入时间"
+    }
+
+    %% 数据字典表 (Data Dictionary)
+    TB_DATA_DICTIONARY {
+        int dict_id PK "字典ID"
+        varchar dict_type "字典类型"
+        varchar dict_code UK "字典编码(与类型组合唯一)"
+        varchar dict_value "字典值"
+        varchar dict_label "字典标签"
+        int sort_order "排序"
+        tinyint is_default "是否默认"
+        varchar remarks "备注"
+        tinyint is_active "是否启用"
+        datetime create_time "创建时间"
+        datetime update_time "更新时间"
+    }
+
+    %% 系统日志表 (System Log)
+    TB_SYSTEM_LOG {
+        bigint log_id PK "日志ID"
+        varchar log_type "日志类型(LOGIN/LOGOUT/IMPORT/EXPORT/ANALYSIS)"
+        varchar log_level "日志级别(INFO/WARN/ERROR/DEBUG)"
+        varchar module_name "模块名称"
+        varchar action "操作"
+        varchar operator "操作员"
+        text message "日志消息"
+        text stack_trace "堆栈跟踪"
+        datetime create_time "创建时间"
+    }
+
+    %% ==========================================
+    %% 视图 (Views)
+    %% ==========================================
+
+    %% 系统层级视图
+    V_SYSTEM_HIERARCHY {
+        int system_id "系统ID"
+        varchar system_code "系统编码"
+        varchar system_name "系统名称"
+        int platform_id "平台ID"
+        varchar platform_code "平台编码"
+        varchar platform_name "平台名称"
+        int module_id "模组ID"
+        varchar module_code "模组编码"
+        varchar module_name "模组名称"
+        varchar module_type "模组类型"
+        varchar manufacturer "制造商"
+    }
+
+    %% 测试数据汇总视图
+    V_TEST_DATA_SUMMARY {
+        int module_id "模组ID"
+        varchar module_code "模组编码"
+        varchar module_name "模组名称"
+        int total_tests "测试总数"
+        datetime first_test_time "首次测试时间"
+        datetime last_test_time "最后测试时间"
+        decimal avg_test_value "平均测试值"
+        decimal min_test_value "最小测试值"
+        decimal max_test_value "最大测试值"
+        int complete_data_count "完整数据数"
+        int censored_data_count "截尾数据数"
+        decimal avg_failure_time "平均失效时间"
+        decimal min_failure_time "最小失效时间"
+        decimal max_failure_time "最大失效时间"
+    }
+
+    %% 威布尔分析数据视图
+    V_WEIBULL_ANALYSIS_DATA {
+        int module_id "模组ID"
+        varchar module_code "模组编码"
+        varchar module_name "模组名称"
+        bigint test_id "测试ID"
+        datetime test_time "测试时间"
+        varchar test_type "测试类型"
+        decimal failure_time "失效时间"
+        tinyint is_censored "是否截尾"
+        tinyint is_valid_failure "是否有效失效"
+        decimal computed_time "计算时间"
+        varchar failure_mode "失效模式"
+        decimal temperature "温度"
+        decimal humidity "湿度"
+        text remarks "备注"
+    }
+
+    %% 最新威布尔分析结果视图
+    V_WEIBULL_LATEST {
+        int analysis_id "分析ID"
+        int module_id "模组ID"
+        datetime analysis_time "分析时间"
+        int data_count "数据数量"
+        decimal beta "β参数"
+        decimal eta "η参数"
+        decimal gamma "γ参数"
+        decimal mttf "MTTF"
+        decimal median_life "中位寿命"
+        decimal b10_life "B10寿命"
+        decimal b50_life "B50寿命"
+        decimal b90_life "B90寿命"
+        decimal r_squared "R²"
+        decimal confidence_level "置信水平"
+        varchar analysis_method "分析方法"
+        varchar module_code "模组编码"
+        varchar module_name "模组名称"
+        varchar platform_name "平台名称"
+        varchar system_name "系统名称"
+    }
+
+    %% ==========================================
+    %% 关系说明
+    %% ==========================================
+    
+    %% 1. 系统层级关系 (三级结构)
+    %%    System (系统) 1 -> N Platform (平台)
+    %%    Platform (平台) 1 -> N Module (模组)
+    %%    这种设计允许灵活的组织结构管理
+    
+    %% 2. 测试数据关系
+    %%    Module (模组) 1 -> N TestData (测试数据)
+    %%    ImportBatch (导入批次) 1 -> N TestData (测试数据)
+    %%    支持批次追溯和数据来源管理
+    
+    %% 3. 分析结果关系
+    %%    Module (模组) 1 -> N WeibullAnalysis (威布尔分析)
+    %%    保留历史分析记录,支持版本对比
+    
+    %% 4. 数据字典
+    %%    提供系统级别的配置数据
+    %%    包括:模组类型、测试类型、失效模式、平台类型、分析方法、导入类型等
+    
+    %% 5. 系统日志
+    %%    记录所有重要操作
+    %%    支持审计和问题追溯
+
+    %% ==========================================
+    %% 索引设计
+    %% ==========================================
+    
+    %% 主要索引:
+    %% - 所有表的主键(PK)
+    %% - 唯一键(UK): system_code, platform_code, module_code, batch_code
+    %% - 外键(FK): system_id, platform_id, module_id, batch_id
+    %% - 查询索引: test_time, analysis_time, module_test_time(复合)
+    
+    %% ==========================================
+    %% 约束设计
+    %% ==========================================
+    
+    %% 外键约束:
+    %% - ON DELETE RESTRICT: 防止误删除有关联数据的记录
+    %% - ON UPDATE CASCADE: 级联更新保持数据一致性
+    
+    %% 检查约束:
+    %% - beta > 0 (形状参数必须为正)
+    %% - eta > 0 (尺度参数必须为正)
+    %% - humidity >= 0 AND humidity <= 100 (湿度范围)
+    
+    %% 默认值:
+    %% - is_active = 1 (默认启用)
+    %% - is_censored = 0 (默认完整数据)
+    %% - create_time = CURRENT_TIMESTAMP (自动时间戳)
+
+    %% ==========================================
+    %% 数据库特性
+    %% ==========================================
+    
+    %% 引擎: InnoDB
+    %% 字符集: utf8mb4
+    %% 排序规则: utf8mb4_unicode_ci
+    %% 支持事务: 是
+    %% 支持外键: 是
+    %% 自动递增: 是

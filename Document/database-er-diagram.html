@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库ER图 - 实验室硬件测试平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .diagram-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            font-size: 1.8em;
+        }
+        
+        .mermaid {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .info-item h4 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .info-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-item li {
+            margin: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .info-item li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+        }
+        
+        .table-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .table-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .table-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .table-card p {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-symbol {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .note strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ 数据库ER图 - 实验室硬件测试平台</h1>
+        
+        <div class="diagram-section">
+            <h2>数据库实体关系图 (Entity-Relationship Diagram)</h2>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-symbol">PK</div>
+                    <span>Primary Key (主键)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">FK</div>
+                    <span>Foreign Key (外键)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">UK</div>
+                    <span>Unique Key (唯一键)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-symbol">||--o{</div>
+                    <span>一对多关系</span>
+                </div>
+            </div>
+            
+            <div class="note">
+                <strong>💡 提示:</strong> 该ER图展示了系统的完整数据库结构,包括8张核心表和4个视图。使用鼠标滚轮可以缩放图表。
+            </div>
+            
+            <div class="mermaid">
+erDiagram
+    TB_SYSTEM ||--o{ TB_PLATFORM : "包含"
+    TB_PLATFORM ||--o{ TB_MODULE : "包含"
+    TB_MODULE ||--o{ TB_TEST_DATA : "产生"
+    TB_MODULE ||--o{ TB_WEIBULL_ANALYSIS : "分析"
+    TB_IMPORT_BATCH ||--o{ TB_TEST_DATA : "包含"
+
+    TB_SYSTEM {
+        int system_id PK
+        varchar system_code UK
+        varchar system_name
+        text description
+        varchar location
+        date install_date
+        date warranty_date
+        datetime create_time
+        datetime update_time
+        tinyint is_active
+        varchar created_by
+        varchar updated_by
+    }
+
+    TB_PLATFORM {
+        int platform_id PK
+        int system_id FK
+        varchar platform_code UK
+        varchar platform_name
+        varchar platform_type
+        varchar serial_number
+        text description
+        date install_date
+        datetime create_time
+        datetime update_time
+        tinyint is_active
+        varchar created_by
+        varchar updated_by
+    }
+
+    TB_MODULE {
+        int module_id PK
+        int platform_id FK
+        varchar module_code UK
+        varchar module_name
+        varchar module_type
+        varchar manufacturer
+        varchar model_number
+        varchar serial_number
+        date manufacture_date
+        int rated_life
+        text description
+        datetime create_time
+        datetime update_time
+        tinyint is_active
+        varchar created_by
+        varchar updated_by
+    }
+
+    TB_TEST_DATA {
+        bigint test_id PK
+        int module_id FK
+        int batch_id FK
+        datetime test_time
+        decimal test_value
+        varchar test_unit
+        varchar test_type
+        int test_cycle
+        decimal failure_time
+        varchar failure_mode
+        tinyint is_censored
+        decimal temperature
+        decimal humidity
+        varchar operator
+        text remarks
+        datetime create_time
+    }
+
+    TB_WEIBULL_ANALYSIS {
+        int analysis_id PK
+        int module_id FK
+        datetime analysis_time
+        int data_count
+        decimal beta
+        decimal eta
+        decimal gamma
+        decimal mttf
+        decimal median_life
+        decimal b10_life
+        decimal b50_life
+        decimal b90_life
+        decimal r_squared
+        decimal confidence_level
+        decimal lower_beta
+        decimal upper_beta
+        decimal lower_eta
+        decimal upper_eta
+        varchar analysis_method
+        text analysis_notes
+        varchar analyst
+        datetime create_time
+    }
+
+    TB_IMPORT_BATCH {
+        int batch_id PK
+        varchar batch_code UK
+        varchar import_type
+        varchar file_name
+        varchar file_path
+        int record_count
+        int success_count
+        int fail_count
+        varchar operator
+        text error_message
+        datetime import_time
+    }
+
+    TB_DATA_DICTIONARY {
+        int dict_id PK
+        varchar dict_type
+        varchar dict_code UK
+        varchar dict_value
+        varchar dict_label
+        int sort_order
+        tinyint is_default
+        varchar remarks
+        tinyint is_active
+        datetime create_time
+        datetime update_time
+    }
+
+    TB_SYSTEM_LOG {
+        bigint log_id PK
+        varchar log_type
+        varchar log_level
+        varchar module_name
+        varchar action
+        varchar operator
+        text message
+        text stack_trace
+        datetime create_time
+    }
+            </div>
+        </div>
+        
+        <div class="diagram-section">
+            <h2>📊 核心表说明</h2>
+            
+            <div class="table-list">
+                <div class="table-card">
+                    <h4>🏢 TB_SYSTEM (系统表)</h4>
+                    <p>管理顶层测试系统,如"深圳公司测试中心"、"北京研发中心"等。记录系统的基本信息、位置和安装维保信息。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>🖥️ TB_PLATFORM (平台表)</h4>
+                    <p>管理测试平台,每个平台归属于一个系统。包括"血液中心平台"、"盐湖所平台"等。记录平台类型和配置信息。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>🔧 TB_MODULE (模组表)</h4>
+                    <p>管理具体的硬件模组,每个模组归属于一个平台。包括电源模组、传感器模组等。记录制造商、型号、序列号等详细信息。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>📊 TB_TEST_DATA (测试数据表)</h4>
+                    <p>存储所有测试数据,包括测试时间、测试值、失效时间、是否截尾等信息。这是威布尔分析的数据源。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>📈 TB_WEIBULL_ANALYSIS (威布尔分析结果表)</h4>
+                    <p>保存威布尔分析结果,包括β、η参数、MTTF、B10/B50/B90寿命、R²拟合优度等。支持历史版本查询。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>📦 TB_IMPORT_BATCH (导入批次表)</h4>
+                    <p>记录每次数据导入的批次信息,包括导入方式、文件信息、成功失败统计等。支持数据溯源。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>📚 TB_DATA_DICTIONARY (数据字典表)</h4>
+                    <p>系统配置数据,包括模组类型、测试类型、失效模式、平台类型、分析方法等枚举值。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>📝 TB_SYSTEM_LOG (系统日志表)</h4>
+                    <p>记录所有重要操作和系统事件,包括登录、导入、分析、导出等操作。支持审计和问题追溯。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="diagram-section">
+            <h2>👁️ 数据视图</h2>
+            
+            <div class="table-list">
+                <div class="table-card">
+                    <h4>V_SYSTEM_HIERARCHY</h4>
+                    <p>系统层级视图:展示系统→平台→模组的完整层级结构,方便查询和管理。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>V_TEST_DATA_SUMMARY</h4>
+                    <p>测试数据汇总视图:按模组统计测试数据,包括总数、平均值、失效时间等统计信息。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>V_WEIBULL_ANALYSIS_DATA</h4>
+                    <p>威布尔分析数据视图:整合模组和测试数据,为威布尔分析提供标准化的数据源。</p>
+                </div>
+                
+                <div class="table-card">
+                    <h4>V_WEIBULL_LATEST</h4>
+                    <p>最新威布尔分析结果视图:查询每个模组的最新分析结果,包含完整的可靠性指标。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>🔗 关系说明</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h4>系统层级关系</h4>
+                    <ul>
+                        <li>System (1) → Platform (N)</li>
+                        <li>Platform (1) → Module (N)</li>
+                        <li>三级树形结构设计</li>
+                        <li>支持灵活的组织管理</li>
+                    </ul>
+                </div>
+                
+                <div class="info-item">
+                    <h4>测试数据关系</h4>
+                    <ul>
+                        <li>Module (1) → TestData (N)</li>
+                        <li>ImportBatch (1) → TestData (N)</li>
+                        <li>支持批次追溯</li>
+                        <li>数据来源可查</li>
+                    </ul>
+                </div>
+                
+                <div class="info-item">
+                    <h4>分析结果关系</h4>
+                    <ul>
+                        <li>Module (1) → WeibullAnalysis (N)</li>
+                        <li>保留历史分析记录</li>
+                        <li>支持版本对比</li>
+                        <li>时间序列分析</li>
+                    </ul>
+                </div>
+                
+                <div class="info-item">
+                    <h4>数据约束</h4>
+                    <ul>
+                        <li>外键级联更新</li>
+                        <li>删除保护(RESTRICT)</li>
+                        <li>唯一性约束</li>
+                        <li>检查约束(β>0, η>0)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>💾 数据库技术规格</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h4>基础配置</h4>
+                    <ul>
+                        <li>数据库: MySQL 8.0+</li>
+                        <li>存储引擎: InnoDB</li>
+                        <li>字符集: utf8mb4</li>
+                        <li>排序规则: utf8mb4_unicode_ci</li>
+                    </ul>
+                </div>
+                
+                <div class="info-item">
+                    <h4>表统计</h4>
+                    <ul>
+                        <li>核心表: 8张</li>
+                        <li>数据视图: 4个</li>
+                        <li>索引: 主键+外键+查询索引</li>
+                        <li>约束: 外键+唯一+检查</li>
+                    </ul>
+                </div>
+                
+                <div class="info-item">
+                    <h4>事务支持</h4>
+                    <ul>
+                        <li>ACID完整性</li>
+                        <li>行级锁定</li>
+                        <li>崩溃恢复</li>
+                        <li>外键约束</li>
+                    </ul>
+                </div>
+                
+                <div class="info-item">
+                    <h4>性能优化</h4>
+                    <ul>
+                        <li>复合索引优化</li>
+                        <li>视图预计算</li>
+                        <li>查询缓存</li>
+                        <li>连接池管理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center; color: white; font-size: 0.9em;">
+            <p>Mathematica Lab Test Platform - Version 3.3</p>
+            <p>Database Schema: syshardtestdb</p>
+            <p>© 2025 Weibull Reliability Analysis System</p>
+        </div>
+    </div>
+    
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            er: {
+                layoutDirection: 'TB',
+                minEntityWidth: 200,
+                minEntityHeight: 80,
+                entityPadding: 15,
+                stroke: '#667eea',
+                fill: '#f8f9fa',
+                fontSize: 12
+            }
+        });
+    </script>
+</body>
+</html>

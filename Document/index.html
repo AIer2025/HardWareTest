@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目文档索引 - 实验室硬件测试平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .doc-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .doc-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .doc-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        .doc-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .doc-card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .doc-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .doc-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+            color: #888;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.6);
+        }
+        
+        .features {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .features h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: center;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .feature-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .feature-item p {
+            color: #666;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+        
+        .tech-stack {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .tech-stack h2 {
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: center;
+        }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .tech-item {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tech-item strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 实验室硬件测试平台</h1>
+            <p>Weibull可靠性分析系统 - 项目文档中心</p>
+            <div class="version-badge">Version 3.3 | 2025</div>
+        </div>
+        
+        <div class="card-grid">
+            <div class="doc-card">
+                <span class="doc-icon">📘</span>
+                <h2>README.MD</h2>
+                <div class="doc-meta">
+                    <span class="meta-item">📄 Markdown</span>
+                    <span class="meta-item">📦 完整文档</span>
+                </div>
+                <p>
+                    项目的完整说明文档,包括项目简介、技术栈、系统架构、核心功能、数据库设计、
+                    安装配置、使用说明、威布尔分析原理、数据字典、常见问题等全面内容。
+                </p>
+                <a href="README.MD" class="btn" download>📥 下载README</a>
+            </div>
+            
+            <div class="doc-card">
+                <span class="doc-icon">🎨</span>
+                <h2>系统架构与数据流程图</h2>
+                <div class="doc-meta">
+                    <span class="meta-item">🌐 HTML</span>
+                    <span class="meta-item">🎨 可视化</span>
+                </div>
+                <p>
+                    交互式HTML页面,展示系统的分层架构图、数据流转图、模块交互图。
+                    包含表示层、业务逻辑层、数据访问层、分析引擎层的详细说明和可视化展示。
+                </p>
+                <a href="system-diagrams.html" class="btn" target="_blank">🔗 在线查看</a>
+            </div>
+            
+            <div class="doc-card">
+                <span class="doc-icon">🗄️</span>
+                <h2>数据库ER图</h2>
+                <div class="doc-meta">
+                    <span class="meta-item">🌐 HTML + Mermaid</span>
+                    <span class="meta-item">📊 实体关系</span>
+                </div>
+                <p>
+                    使用Mermaid渲染的数据库实体关系图,展示8张核心表和4个视图的完整结构。
+                    包括系统、平台、模组、测试数据、威布尔分析等表的关系和字段说明。
+                </p>
+                <a href="database-er-diagram.html" class="btn" target="_blank">🔗 在线查看</a>
+            </div>
+            
+            <div class="doc-card">
+                <span class="doc-icon">📐</span>
+                <h2>数据库ER图源文件</h2>
+                <div class="doc-meta">
+                    <span class="meta-item">📄 Mermaid</span>
+                    <span class="meta-item">🔧 可编辑</span>
+                </div>
+                <p>
+                    Mermaid格式的ER图源文件,可以在支持Mermaid的编辑器(如VS Code、Typora)
+                    中打开编辑。包含详细的注释和说明。
+                </p>
+                <a href="database-er-diagram.mermaid" class="btn" download>📥 下载源文件</a>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>🎯 系统核心功能</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <h3>🏢 系统管理</h3>
+                    <p>三级层次结构管理:系统→平台→模组,支持树形展示和灵活的组织架构</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📥 数据导入</h3>
+                    <p>支持手工输入、Excel批量导入、ModBus-TCP实时采集三种方式</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>🧮 威布尔分析</h3>
+                    <p>MLE最大似然估计,计算β、η参数和完整的可靠性指标</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📊 可靠性指标</h3>
+                    <p>MTTF、中位寿命、B10/B50/B90寿命、R²拟合优度、置信区间</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📈 数据可视化</h3>
+                    <p>威布尔概率图、失效率曲线、可靠度函数等多种图表展示</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📄 报告导出</h3>
+                    <p>生成包含图表的专业Excel报告,支持历史版本查询</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>🔍 数据追溯</h3>
+                    <p>完整的批次管理和操作日志,支持数据溯源和审计</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📚 数据字典</h3>
+                    <p>灵活的配置系统,支持模组类型、测试类型、失效模式等自定义</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tech-stack">
+            <h2>🛠️ 技术栈</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <strong>前端框架</strong>
+                    <div>Avalonia 11.0.5</div>
+                    <div>ReactiveUI</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>图表库</strong>
+                    <div>ScottPlot 5.0.15</div>
+                    <div>数据可视化</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>后端框架</strong>
+                    <div>.NET 8.0</div>
+                    <div>C# 12</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>数学库</strong>
+                    <div>MathNet.Numerics</div>
+                    <div>优化算法</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>数据访问</strong>
+                    <div>Dapper ORM</div>
+                    <div>MySql.Data</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>数据库</strong>
+                    <div>MySQL 8.0+</div>
+                    <div>InnoDB引擎</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>文件处理</strong>
+                    <div>ClosedXML</div>
+                    <div>Excel操作</div>
+                </div>
+                
+                <div class="tech-item">
+                    <strong>依赖注入</strong>
+                    <div>MS.Extensions.DI</div>
+                    <div>IoC容器</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>📖 威布尔分析核心算法</h2>
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 10px; margin-top: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">威布尔分布三参数模型</h3>
+                <div style="font-family: 'Courier New', monospace; background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <p><strong>概率密度函数:</strong></p>
+                    <p style="margin: 10px 0;">f(t) = (β/η) × (t/η)^(β-1) × exp(-(t/η)^β)</p>
+                    
+                    <p style="margin-top: 20px;"><strong>可靠度函数:</strong></p>
+                    <p style="margin: 10px 0;">R(t) = exp(-(t/η)^β)</p>
+                    
+                    <p style="margin-top: 20px;"><strong>失效率函数:</strong></p>
+                    <p style="margin: 10px 0;">h(t) = (β/η) × (t/η)^(β-1)</p>
+                </div>
+                
+                <h3 style="color: #667eea; margin-bottom: 15px;">参数意义</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h3>β (形状参数)</h3>
+                        <p>β < 1: 早期失效(婴儿期)<br>
+                           β = 1: 随机失效(偶然期)<br>
+                           β > 1: 磨损失效(耗损期)</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>η (尺度参数)</h3>
+                        <p>特征寿命,约63.2%的产品在此时间失效。η越大,产品寿命越长。</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>γ (位置参数)</h3>
+                        <p>最小寿命,产品在此时间之前不会失效。当前实现中默认为0。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <h3 style="margin-bottom: 15px;">📬 联系与支持</h3>
+            <p>Mathematica Lab Test Platform</p>
+            <p>Weibull Reliability Analysis System</p>
+            <p>Version 3.3 - 2025</p>
+            <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+                © 2025 All Rights Reserved
+            </p>
+        </div>
+    </div>
+</body>
+</html>
