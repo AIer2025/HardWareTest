@@ -489,78 +489,79 @@ namespace LabTestPlatform.UI.ViewModels
                     return;
                 }
 
-                SimpleLogger.Info("开始筛选失效和删失数据...");
+                SimpleLogger.Info("准备分析数据...");
                 
-                var failures = TestData.Where(d => d.IsFailure).ToArray();
-                SimpleLogger.Info($"失效数据数量: {failures.Length}");
+                // 准备数据数组
+                int totalCount = TestData.Count;
+                double[] allTimes = new double[totalCount];
+                bool[] isCensored = new bool[totalCount];
                 
-                var suspensions = TestData.Where(d => !d.IsFailure).ToArray();
-                SimpleLogger.Info($"删失数据数量: {suspensions.Length}");
+                int failureCount = 0;
+                int censoredCount = 0;
                 
-                if (failures.Length == 0)
+                for (int i = 0; i < totalCount; i++)
+                {
+                    allTimes[i] = TestData[i].Time;
+                    isCensored[i] = !TestData[i].IsFailure; // true表示删尾
+                    
+                    if (TestData[i].IsFailure)
+                        failureCount++;
+                    else
+                        censoredCount++;
+                }
+                
+                SimpleLogger.Info($"数据统计: 总数={totalCount}, 失效={failureCount}, 删尾={censoredCount}");
+                
+                if (failureCount == 0)
                 {
                     SimpleLogger.Warning("没有失效数据,无法进行威布尔分析");
                     StatusMessage = "错误: 没有失效数据可供分析";
                     return;
                 }
 
-                SimpleLogger.Info("提取失效时间数据...");
-                var failureTimes = failures.Select(d => d.Time).ToArray();
+                SimpleLogger.Info("调用 WeibullEngine 进行完整分析...");
                 
-                SimpleLogger.Info($"失效时间统计: 最小={failureTimes.Min():F2}, 最大={failureTimes.Max():F2}, 平均={failureTimes.Average():F2}");
+                // 使用完整的 WeibullEngine 分析
+                var result = _analysisService.AnalyzeWithEngine(allTimes, isCensored, confidenceLevel: 0.95);
                 
-                // 显示前5个失效时间
-                for (int i = 0; i < Math.Min(5, failureTimes.Length); i++)
-                {
-                    SimpleLogger.Debug($"  失效时间[{i}] = {failureTimes[i]:F2}");
-                }
+                SimpleLogger.Info($"✓ 威布尔分析完成");
+                SimpleLogger.Info($"  β = {result.Beta:F4}");
+                SimpleLogger.Info($"  η = {result.Eta:F2}");
+                SimpleLogger.Info($"  R² = {result.RSquared:F6}");
+                SimpleLogger.Info($"  MTTF = {result.MTTF:F2}");
 
-                var suspensionTimes = suspensions.Select(d => d.Time).ToArray();
-                if (suspensionTimes.Length > 0)
-                {
-                    SimpleLogger.Info($"删失时间统计: 最小={suspensionTimes.Min():F2}, 最大={suspensionTimes.Max():F2}");
-                }
+                // 从 WeibullResult 设置所有分析结果
+                Beta = result.Beta;
+                Eta = result.Eta;
+                RSquared = result.RSquared;  // 使用引擎计算的正确R²
+                MTTF = result.MTTF;
+                B10Life = result.B10Life;
+                B50Life = result.B50Life;
+                B90Life = result.B90Life;
                 
-                SimpleLogger.Info("调用威布尔参数计算服务...");
-                var (beta, eta) = _analysisService.CalculateWeibullParameters(failureTimes, suspensionTimes);
-                
-                SimpleLogger.Info($"✓ 威布尔参数计算成功: β={beta:F4}, η={eta:F2}");
-
-                // 设置分析结果
-                Beta = beta;
-                Eta = eta;
-                SampleCount = TestData.Count;
+                SampleCount = totalCount;
                 AnalysisTime = DateTime.Now;
                 ResultModuleName = SelectedModule?.Name ?? "Unknown";
 
-                SimpleLogger.Info("计算可靠性指标...");
-                
-                MTTF = eta * GammaFunction(1.0 + 1.0 / beta);
-                B10Life = eta * Math.Pow(-Math.Log(0.9), 1.0 / beta);
-                B50Life = eta * Math.Pow(-Math.Log(0.5), 1.0 / beta);
-                B90Life = eta * Math.Pow(-Math.Log(0.1), 1.0 / beta);
-
-                SimpleLogger.Info($"可靠性指标: MTTF={MTTF:F2}, B10={B10Life:F2}, B50={B50Life:F2}, B90={B90Life:F2}");
-
-                SimpleLogger.Info("计算拟合优度R²...");
-                RSquared = CalculateRSquared(failureTimes);
-                SimpleLogger.Info($"R² = {RSquared:F4}");
-
-                HasConfidenceInterval = failures.Length >= 10;
+                // 置信区间
+                HasConfidenceInterval = failureCount >= 10;
                 if (HasConfidenceInterval)
                 {
-                    double margin = 0.1 * beta;
-                    BetaLower = beta - margin;
-                    BetaUpper = beta + margin;
-                    EtaLower = eta * 0.9;
-                    EtaUpper = eta * 1.1;
-                    SimpleLogger.Info($"置信区间: β=[{BetaLower:F4}, {BetaUpper:F4}], η=[{EtaLower:F2}, {EtaUpper:F2}]");
+                    BetaLower = result.BetaLower;
+                    BetaUpper = result.BetaUpper;
+                    EtaLower = result.EtaLower;
+                    EtaUpper = result.EtaUpper;
+                    
+                    SimpleLogger.Info($"置信区间 (95%):");
+                    SimpleLogger.Info($"  β: [{result.BetaLower:F4}, {result.BetaUpper:F4}]");
+                    SimpleLogger.Info($"  η: [{result.EtaLower:F2}, {result.EtaUpper:F2}]");
                 }
 
                 HasResult = true;
                 StatusMessage = $"✓ 分析完成! β={Beta:F2}, η={Eta:F2}, MTTF={MTTF:F2}h";
 
                 SimpleLogger.Info("绘制威布尔概率图...");
+                var failureTimes = allTimes.Where((t, i) => !isCensored[i]).ToArray();
                 PlotWeibullChart(failureTimes);
 
                 SimpleLogger.Separator("威布尔分析完成");
@@ -685,6 +686,8 @@ namespace LabTestPlatform.UI.ViewModels
             return Math.Sqrt(2 * Math.PI / z) * Math.Pow(z / Math.E, z);
         }
 
+        // CalculateRSquared 方法已废弃，现在使用 WeibullEngine.Analyze() 返回的 R²
+        /*
         private double CalculateRSquared(double[] failures)
         {
             try
@@ -706,6 +709,7 @@ namespace LabTestPlatform.UI.ViewModels
                 return 0;
             }
         }
+        */
 
         private void SaveResult()
         {

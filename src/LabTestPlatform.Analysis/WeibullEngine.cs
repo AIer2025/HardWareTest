@@ -4,13 +4,18 @@ using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.Optimization;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Statistics;
 using static MathNet.Numerics.SpecialFunctions;
 
 namespace LabTestPlatform.Analysis
 {
     /// <summary>
-    /// 威布尔分析引擎
+    /// 威布尔分析引擎 - 修复版
     /// 实现威布尔分布参数估计和可靠性计算
+    /// 修复内容：
+    /// 1. R²计算方法：使用相关系数的平方，而非残差平方和
+    /// 2. R²计算时只使用失效数据（排除删尾数据）
+    /// 3. 与MATLAB版本的CalcR2函数对齐
     /// </summary>
     public class WeibullEngine : IWeibullEngine
     {
@@ -18,7 +23,7 @@ namespace LabTestPlatform.Analysis
         /// 执行威布尔分析
         /// </summary>
         /// <param name="failureTimes">失效时间数据</param>
-        /// <param name="isCensored">截尾标记（可选）</param>
+        /// <param name="isCensored">截尾标记（可选，true表示删尾，false表示失效）</param>
         /// <param name="confidenceLevel">置信水平（默认95%）</param>
         /// <returns>威布尔分析结果</returns>
         public WeibullResult Analyze(double[] failureTimes, bool[]? isCensored = null, double confidenceLevel = 0.95)
@@ -28,7 +33,7 @@ namespace LabTestPlatform.Analysis
                 throw new ArgumentException("至少需要3个数据点才能进行威布尔分析", nameof(failureTimes));
             }
 
-            // 如果没有提供截尾标记,默认全部为完整数据
+            // 如果没有提供截尾标记,默认全部为完整数据（失效数据）
             isCensored ??= new bool[failureTimes.Length];
 
             // 使用最大似然估计法（MLE）估计参数
@@ -41,8 +46,8 @@ namespace LabTestPlatform.Analysis
             var b50 = CalculateBxLife(0.50, beta, eta);
             var b90 = CalculateBxLife(0.90, beta, eta);
 
-            // 计算拟合优度
-            var rSquared = CalculateRSquared(failureTimes, beta, eta);
+            // 计算拟合优度 - 修复版：只使用失效数据，使用相关系数平方
+            var rSquared = CalculateRSquared(failureTimes, isCensored, beta, eta);
 
             // 计算置信区间（使用Fisher信息矩阵）
             var (betaLower, betaUpper, etaLower, etaUpper) = CalculateConfidenceIntervals(
@@ -77,7 +82,7 @@ namespace LabTestPlatform.Analysis
             // 初始猜测值（使用矩估计或秩回归的结果）
             var initialGuess = EstimateParametersRankRegression(failureTimes, isCensored);
 
-            // 定义负对数似然函数 - 修复：使用 Vector<double> 而不是 double[]
+            // 定义负对数似然函数
             Func<Vector<double>, double> negativeLogLikelihood = (parameters) =>
             {
                 double beta = parameters[0];
@@ -90,11 +95,11 @@ namespace LabTestPlatform.Analysis
                 for (int i = 0; i < failureTimes.Length; i++)
                 {
                     double t = failureTimes[i];
-                    if (!isCensored[i]) // 完整数据
+                    if (!isCensored[i]) // 失效数据
                     {
                         logL += Math.Log(beta) - beta * Math.Log(eta) + (beta - 1) * Math.Log(t) - Math.Pow(t / eta, beta);
                     }
-                    else // 截尾数据
+                    else // 删尾数据
                     {
                         logL += -Math.Pow(t / eta, beta);
                     }
@@ -121,7 +126,7 @@ namespace LabTestPlatform.Analysis
         /// </summary>
         private (double beta, double eta) EstimateParametersRankRegression(double[] failureTimes, bool[] isCensored)
         {
-            // 只使用完整数据进行秩回归
+            // 只使用失效数据进行秩回归
             var completeData = failureTimes
                 .Where((t, i) => !isCensored[i])
                 .OrderBy(t => t)
@@ -129,7 +134,7 @@ namespace LabTestPlatform.Analysis
 
             if (completeData.Length < 2)
             {
-                // 如果完整数据太少，使用简单估计
+                // 如果失效数据太少，使用简单估计
                 return (2.0, failureTimes.Average());
             }
 
@@ -140,7 +145,7 @@ namespace LabTestPlatform.Analysis
             for (int i = 0; i < n; i++)
             {
                 double rank = i + 1;
-                // Bernard中位秩估计
+                // Bernard中位秩估计: (i - 0.3) / (n + 0.4)
                 double F = (rank - 0.3) / (n + 0.4);
                 
                 x[i] = Math.Log(completeData[i]);
@@ -196,33 +201,58 @@ namespace LabTestPlatform.Analysis
         }
 
         /// <summary>
-        /// 计算拟合优度R²
+        /// 计算拟合优度R² - 修复版
+        /// 修复内容：
+        /// 1. 只使用失效数据（isCensored = false），排除删尾数据
+        /// 2. 计算线性化数据(X, Y)的Pearson相关系数的平方
+        /// 3. X = ln(t), Y = ln(-ln(1-F))
+        /// 4. 与MATLAB版本的CalcR2函数完全对齐
         /// </summary>
-        private double CalculateRSquared(double[] failureTimes, double beta, double eta)
+        private double CalculateRSquared(double[] failureTimes, bool[] isCensored, double beta, double eta)
         {
-            var sorted = failureTimes.OrderBy(t => t).ToArray();
-            int n = sorted.Length;
+            // 1. 只提取失效数据（删尾数据不参与R²计算）
+            var failureData = failureTimes
+                .Where((t, i) => !isCensored[i])
+                .OrderBy(t => t)
+                .ToArray();
 
-            double[] observed = new double[n];
-            double[] predicted = new double[n];
+            int n = failureData.Length;
+
+            // 如果失效数据少于2个，无法计算R²
+            if (n < 2)
+            {
+                return 0.0;
+            }
+
+            // 2. 准备线性化数据
+            double[] x = new double[n]; // X = ln(t)
+            double[] y = new double[n]; // Y = ln(-ln(1-F))
 
             for (int i = 0; i < n; i++)
             {
-                // 观测值：经验分布函数
-                double F_empirical = (i + 1 - 0.3) / (n + 0.4);
-                observed[i] = Math.Log(-Math.Log(1 - F_empirical));
-
-                // 预测值：威布尔分布函数
-                double F_weibull = 1 - Math.Exp(-Math.Pow(sorted[i] / eta, beta));
-                predicted[i] = Math.Log(-Math.Log(1 - Math.Max(F_weibull, 1e-10)));
+                // Bernard中位秩估计: F = (rank - 0.3) / (n + 0.4)
+                double rank = i + 1;
+                double F = (rank - 0.3) / (n + 0.4);
+                
+                // 线性化Weibull分布
+                x[i] = Math.Log(failureData[i]);
+                y[i] = Math.Log(-Math.Log(1 - F));
             }
 
-            // 计算R²
-            double observedMean = observed.Average();
-            double ssTot = observed.Sum(y => Math.Pow(y - observedMean, 2));
-            double ssRes = observed.Zip(predicted, (o, p) => Math.Pow(o - p, 2)).Sum();
+            // 3. 计算Pearson相关系数
+            // 使用MathNet.Numerics的Correlation函数
+            double correlationCoefficient = Correlation.Pearson(x, y);
+            
+            // 4. R² = r²（相关系数的平方）
+            double rSquared = correlationCoefficient * correlationCoefficient;
 
-            return 1 - (ssRes / ssTot);
+            // 确保R²在合理范围内
+            if (double.IsNaN(rSquared) || double.IsInfinity(rSquared))
+            {
+                return 0.0;
+            }
+
+            return rSquared;
         }
 
         /// <summary>

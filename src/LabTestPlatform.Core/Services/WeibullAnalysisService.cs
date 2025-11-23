@@ -116,4 +116,24 @@ public class WeibullAnalysisService : IWeibullAnalysisService
         }
         return probabilities;
     }
+
+    /// <summary>
+    /// 执行完整的威布尔分析（使用WeibullEngine）
+    /// </summary>
+    public WeibullResult AnalyzeWithEngine(double[] failureTimes, bool[] isCensored, double confidenceLevel = 0.95)
+    {
+        if (failureTimes == null || failureTimes.Length == 0)
+        {
+            throw new ArgumentException("失效时间数据不能为空", nameof(failureTimes));
+        }
+
+        // 如果没有提供删尾标记，默认全部为失效数据
+        if (isCensored == null)
+        {
+            isCensored = new bool[failureTimes.Length];
+        }
+
+        // 调用 WeibullEngine 进行完整分析
+        return _weibullEngine.Analyze(failureTimes, isCensored, confidenceLevel);
+    }
 }
